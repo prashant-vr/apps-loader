@@ -1,28 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-base-200/50">
 <head>
-    <meta charset="UTF-8">
-    <title>Login - HTML Hoster</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <%- include('partials/head', { title: 'Login - Apps Loader' }) %>
 </head>
-<body class="bg-gray-100 h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded shadow-md w-96">
-        <h1 class="text-2xl font-bold mb-6 text-center text-blue-600">HTML Hoster</h1>
-        <% if (error) { %>
-            <div class="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm"><%= error %></div>
-        <% } %>
-        <form action="/login" method="POST" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Username</label>
-                <input type="text" name="username" required class="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500">
+<body class="h-full flex items-center justify-center p-4 antialiased">
+    <div class="card bg-base-100 shadow-xl border border-base-200 w-full max-w-md rounded-2xl p-2 sm:p-4">
+        <div class="card-body">
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-primary text-primary-content flex items-center justify-center font-black text-xl mx-auto shadow-sm mb-3">
+                    A
+                </div>
+                <h1 class="text-2xl font-black text-base-content tracking-tight">Welcome Back</h1>
+                <p class="text-xs text-base-content/60 mt-1">Sign in to your Apps Loader account</p>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" name="password" required class="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500">
+
+            <% if (error) { %>
+                <div role="alert" class="alert alert-error text-xs p-3 rounded-xl mb-4">
+                    <svg class="w-4 h-4 stroke-current shrink-0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span><%= error %></span>
+                </div>
+            <% } %>
+
+            <form action="/login" method="POST" class="space-y-4">
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">Username</span>
+                    </label>
+                    <input type="text" name="username" required autofocus placeholder="Enter your username" class="input input-bordered input-sm sm:input-md w-full focus:input-primary">
+                </div>
+
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">Password</span>
+                    </label>
+                    <input type="password" name="password" required placeholder="••••••••" class="input input-bordered input-sm sm:input-md w-full focus:input-primary">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full shadow-sm mt-2">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="text-center text-xs text-base-content/60 mt-6 pt-4 border-t border-base-200">
+                Don't have an account? 
+                <a href="/register" class="link link-primary font-semibold">Create one now</a>
             </div>
-            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
-        </form>
-        <p class="mt-4 text-center text-sm">Don't have an account? <a href="/register" class="text-blue-600 hover:underline">Register</a></p>
+        </div>
     </div>
 </body>
 </html>

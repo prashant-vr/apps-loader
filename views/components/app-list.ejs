@@ -1,79 +1,99 @@
 <div class="lg:col-span-2">
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-gray-900">Your Deployments</h2>
-        <span class="bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-medium"><%= apps.length %> Active</span>
+        <div>
+            <h2 class="text-xl font-bold text-base-content">Your Deployments</h2>
+            <p class="text-xs text-base-content/60">Manage your hosted applications and single-page sites</p>
+        </div>
+        <div class="badge badge-neutral badge-lg font-mono text-xs"><%= apps.length %> Active</div>
     </div>
     
     <% if (apps.length === 0) { %>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <div class="mx-auto h-12 w-12 text-gray-300">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        <div class="card bg-base-100 border-2 border-dashed border-base-200 p-12 text-center rounded-2xl">
+            <div class="card-body items-center p-0">
+                <div class="w-14 h-14 rounded-2xl bg-base-200 flex items-center justify-center text-base-content/40 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <h3 class="font-bold text-base text-base-content">No deployments yet</h3>
+                <p class="text-xs text-base-content/60 max-w-xs mt-1">Upload a single-page .html application or use the in-browser Code Editor to publish your first site.</p>
+                <div class="card-actions mt-4">
+                    <a href="/fiddle" class="btn btn-primary btn-sm gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                        Launch Code Editor
+                    </a>
+                </div>
             </div>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No projects yet</h3>
-            <p class="mt-1 text-sm text-gray-500">Create your first deployment using the form.</p>
         </div>
     <% } else { %>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <% apps.forEach(app => { %>
-                <div class="group bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+                <div class="card bg-base-100 shadow-sm border border-base-200 hover:border-primary/40 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col justify-between">
                     
                     <!-- Card Body -->
-                    <div class="p-5">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-base font-bold text-gray-900 truncate" title="<%= app.title || app.slug %>">
+                    <div class="card-body p-5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-bold text-base text-base-content truncate" title="<%= app.title || app.slug %>">
                                     <%= app.title || app.slug %>
                                 </h3>
-                                <div class="mt-1 flex items-center gap-2">
-                                    <span class="bg-gray-100 text-gray-500 text-[10px] font-mono px-2 py-0.5 rounded">/sites/<%= app.slug %>/</span>
-                                    <a href="/sites/<%= app.slug %>/" target="_blank" class="text-indigo-600 hover:text-indigo-800">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                <div class="mt-1 flex items-center gap-1.5 font-mono text-[11px] text-base-content/60">
+                                    <span class="badge badge-ghost badge-sm font-mono text-[10px]">/sites/<%= app.slug %>/</span>
+                                    <a href="/sites/<%= app.slug %>/" target="_blank" class="btn btn-ghost btn-circle btn-xs text-primary" title="Open App">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     </a>
                                 </div>
                             </div>
                             <% if (app.is_featured) { %>
-                                <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gradient-to-r from-indigo-500 to-purple-500 text-white">Featured</span>
+                                <span class="badge badge-warning badge-sm font-bold uppercase text-[10px]">Featured</span>
                             <% } %>
                         </div>
                         
-                        <div class="mt-4 flex items-center justify-between text-xs text-gray-500">
-                            <span class="flex items-center truncate max-w-[120px]" title="<%= app.original_name %>">
-                                <svg class="mr-1 h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <div class="mt-4 flex items-center justify-between text-xs text-base-content/60 border-t border-base-200/60 pt-3">
+                            <span class="truncate max-w-[130px] flex items-center gap-1" title="<%= app.original_name %>">
+                                <svg class="w-3.5 h-3.5 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 <%= app.original_name %>
                             </span>
-                            <span><%= new Date(app.created_at).toLocaleDateString() %></span>
+                            <span class="text-[11px]"><%= new Date(app.created_at).toLocaleDateString() %></span>
                         </div>
                     </div>
 
-                    <!-- Actions -->
+                    <!-- Actions Bar -->
                     <% if (user.is_approved === 1) { %>
-                        <div class="bg-gray-50/50 border-t border-gray-100 px-5 py-3">
-                            <details class="group/details relative">
-                                <summary class="flex items-center justify-between w-full text-xs font-semibold text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors select-none">
-                                    <span>Manage Project</span>
-                                    <svg class="h-4 w-4 transform group-open/details:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <div class="bg-base-200/50 border-t border-base-200 px-5 py-3">
+                            <details class="group/details">
+                                <summary class="flex items-center justify-between text-xs font-semibold text-base-content/70 cursor-pointer hover:text-primary transition-colors select-none">
+                                    <span>Manage & Edit</span>
+                                    <svg class="h-4 w-4 transform group-open/details:rotate-180 transition-transform text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </summary>
                                 
-                                <div class="mt-4 pt-3 border-t border-gray-200">
-                                    <!-- Edit Code -->
-                                    <a href="/fiddle/<%= app.slug %>" class="flex items-center justify-center w-full px-3 py-2 mb-3 border border-indigo-200 shadow-sm text-xs font-semibold rounded-lg text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors">
-                                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                                        Edit Code in Browser
+                                <div class="mt-3 pt-3 border-t border-base-300 space-y-3">
+                                    <!-- Edit in Fiddle -->
+                                    <a href="/fiddle/<%= app.slug %>" class="btn btn-outline btn-primary btn-xs w-full gap-1.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                        Edit in Code Editor
                                     </a>
 
-                                    <!-- Update Metadata -->
-                                    <form action="/update" method="POST" enctype="multipart/form-data" class="space-y-3">
+                                    <!-- Update Form -->
+                                    <form action="/update" method="POST" enctype="multipart/form-data" class="space-y-2">
                                         <input type="hidden" name="slug" value="<%= app.slug %>">
                                         <div>
-                                            <input type="text" name="title" value="<%= app.title %>" class="block w-full text-xs border-gray-300 rounded focus:border-indigo-500 focus:ring-indigo-500 px-2 py-1" placeholder="Title">
+                                            <input type="text" name="title" value="<%= app.title %>" class="input input-bordered input-xs w-full" placeholder="App Title">
                                         </div>
                                         <div>
-                                            <label class="block text-[10px] text-gray-400 mb-1">Replace File (Optional)</label>
-                                            <input type="file" name="htmlFile" accept=".html" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
+                                            <label class="block text-[10px] text-base-content/60 mb-0.5">Replace HTML file:</label>
+                                            <input type="file" name="htmlFile" accept=".html" class="file-input file-input-bordered file-input-xs w-full">
                                         </div>
-                                        <div class="text-right">
-                                            <button type="submit" class="text-xs text-gray-600 hover:text-indigo-600 font-medium underline">Save Changes</button>
+                                        <div class="flex items-center justify-between pt-1">
+                                            <button type="submit" class="btn btn-neutral btn-xs">Save Updates</button>
                                         </div>
+                                    </form>
+
+                                    <!-- Delete App Form -->
+                                    <form action="/apps/delete" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this application? This action cannot be undone.');" class="pt-2 border-t border-base-200">
+                                        <input type="hidden" name="slug" value="<%= app.slug %>">
+                                        <button type="submit" class="btn btn-ghost btn-xs text-error hover:bg-error/10 w-full justify-start gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            Delete Deployment
+                                        </button>
                                     </form>
                                 </div>
                             </details>

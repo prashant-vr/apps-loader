@@ -1,53 +1,57 @@
 <% if (user.is_approved === 1) { %>
-<div class="bg-white shadow-sm border border-gray-200 rounded-xl sticky top-24">
-    <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
-        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            New Deployment
+<div class="card bg-base-100 shadow-sm border border-base-200 sticky top-24 rounded-2xl">
+    <div class="card-body p-6">
+        <h3 class="card-title text-base font-bold text-base-content flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            </div>
+            Deploy New App
         </h3>
-    </div>
-    <div class="p-5">
+
         <form action="/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Project Title</label>
-                <input type="text" name="title" placeholder="e.g. Flappy Bird Clone" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border">
+            <div class="form-control">
+                <label class="label pt-0 pb-1">
+                    <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">Project Title</span>
+                </label>
+                <input type="text" name="title" placeholder="e.g. Traffic Report Generator" class="input input-bordered input-sm sm:input-md w-full focus:input-primary">
             </div>
 
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Slug URL</label>
-                <div class="flex rounded-md shadow-sm">
-                    <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">/sites/</span>
-                    <input type="text" name="slug" id="slugInput" required placeholder="my-app" oninput="sanitizeInput(this)" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <div class="form-control">
+                <label class="label pt-0 pb-1">
+                    <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">URL Slug</span>
+                </label>
+                <div class="join w-full">
+                    <span class="join-item btn btn-sm sm:btn-md btn-disabled bg-base-200 text-base-content/60 font-mono text-xs">/sites/</span>
+                    <input type="text" name="slug" id="slugInput" required placeholder="my-app" oninput="sanitizeInput(this)" class="join-item input input-bordered input-sm sm:input-md w-full focus:input-primary font-mono text-xs sm:text-sm">
                 </div>
-                <p class="mt-1 text-xs text-indigo-500 truncate" id="slugPreview">Preview: ...</p>
+                <label class="label pb-0 pt-1">
+                    <span class="label-text-alt font-mono text-primary text-[11px] truncate" id="slugPreview">Preview: /sites/.../</span>
+                </label>
             </div>
 
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">HTML File</label>
-                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all cursor-pointer group relative">
-                    <input id="htmlFile" name="htmlFile" type="file" accept=".html" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required onchange="updateFileName(this)">
-                    <div class="space-y-1 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 group-hover:text-indigo-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <div class="text-sm text-gray-600">
-                            <span class="font-medium text-indigo-600 hover:text-indigo-500">Upload a file</span> or drag and drop
-                        </div>
-                        <p class="text-xs text-gray-500" id="fileNameDisplay">.html only</p>
-                    </div>
-                </div>
+            <div class="form-control">
+                <label class="label pt-0 pb-1">
+                    <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">HTML Source File</span>
+                </label>
+                <input id="htmlFile" name="htmlFile" type="file" accept=".html" required onchange="updateFileName(this)" class="file-input file-input-bordered file-input-primary file-input-sm sm:file-input-md w-full">
+                <label class="label pb-0 pt-1">
+                    <span class="label-text-alt text-base-content/50 text-[11px]" id="fileNameDisplay">Upload single .html file with bundled assets</span>
+                </label>
             </div>
 
-            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
-                Launch Project
+            <button type="submit" class="btn btn-primary w-full shadow-sm gap-2 mt-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                Deploy Application
             </button>
         </form>
     </div>
 </div>
 <% } else { %>
-    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-        <svg class="mx-auto h-12 w-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-        <h3 class="mt-2 text-sm font-medium text-yellow-800">Account Pending</h3>
-        <p class="mt-1 text-sm text-yellow-600">Admin approval is required to deploy.</p>
+<div class="alert alert-warning shadow-sm rounded-2xl">
+    <svg class="w-6 h-6 stroke-current shrink-0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <div>
+        <h3 class="font-bold text-sm">Account Pending Approval</h3>
+        <div class="text-xs">Your account must be approved by an administrator before deploying applications.</div>
     </div>
+</div>
 <% } %>

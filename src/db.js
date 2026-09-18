@@ -5,13 +5,13 @@ const db = new Database('database.sqlite');
 const cache = new Keyv();
 
 // --- OPTIMIZATIONS ---
-// 1. WAL Mode: Allows reading while writing (huge concurrency boost)
+// 1. WAL Mode: Concurrency boost (read while write)
 db.pragma('journal_mode = WAL');
 
-// 2. Synchronous Normal: Faster writes with valid safety for most web apps
+// 2. Synchronous Normal: High performance with safe writes
 db.pragma('synchronous = NORMAL');
 
-// 3. Cache Size: Increase memory cache size (approx 64MB)
+// 3. Cache Size: 64MB memory cache
 db.pragma('cache_size = 64000');
 
 // --- CACHE KEYS ---
@@ -20,16 +20,20 @@ const CACHE_KEYS = {
   PUBLIC_BOOKMARKS: 'public_bookmarks'
 };
 
-// --- Helper to invalidate cache ---
+// --- Cache Invalidation Helper ---
 const invalidateCache = async (keys) => {
-  if (Array.isArray(keys)) {
-    for (const k of keys) await cache.delete(k);
-  } else {
-    await cache.delete(keys);
+  try {
+    if (Array.isArray(keys)) {
+      for (const k of keys) await cache.delete(k);
+    } else {
+      await cache.delete(keys);
+    }
+  } catch (err) {
+    console.error('[Cache] Error invalidating cache:', err.message);
   }
 };
 
-// Initialize Tables
+// Initialize Tables & Indexes
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,6 +72,11 @@ db.exec(`
     value TEXT
   );
 
+  CREATE INDEX IF NOT EXISTS idx_apps_user ON apps(user_id);
+  CREATE INDEX IF NOT EXISTS idx_apps_featured ON apps(is_featured);
+  CREATE INDEX IF NOT EXISTS idx_bookmarks_user ON bookmarks(user_id);
+  CREATE INDEX IF NOT EXISTS idx_bookmarks_public ON bookmarks(is_public, is_protected);
+
   INSERT OR IGNORE INTO settings (key, value) VALUES ('auto_approve', '0');
 `);
 
@@ -101,8 +110,6 @@ export const updateUserStatus = (userId, isApproved) => {
 export const createApp = (userId, slug, originalName, title) => {
   const stmt = db.prepare('INSERT INTO apps (user_id, slug, original_name, title) VALUES (?, ?, ?, ?)');
   const res = stmt.run(userId, slug, originalName, title);
-
-  // CLEAR CACHE on write
   invalidateCache([CACHE_KEYS.FEATURED_APPS]);
   return res;
 };
@@ -117,7 +124,6 @@ export const getAppBySlug = (slug) => {
   return stmt.get(slug);
 };
 
-// CHANGED: Flexible update function
 export const updateApp = (slug, title, originalName) => {
   if (originalName) {
     const stmt = db.prepare('UPDATE apps SET title = ?, original_name = ?, created_at = CURRENT_TIMESTAMP WHERE slug = ?');
@@ -126,8 +132,14 @@ export const updateApp = (slug, title, originalName) => {
     const stmt = db.prepare('UPDATE apps SET title = ?, created_at = CURRENT_TIMESTAMP WHERE slug = ?');
     stmt.run(title, slug);
   }
-  // CLEAR CACHE on update
   invalidateCache([CACHE_KEYS.FEATURED_APPS]);
+};
+
+export const deleteApp = (slug, userId) => {
+  const stmt = db.prepare('DELETE FROM apps WHERE slug = ? AND user_id = ?');
+  const res = stmt.run(slug, userId);
+  invalidateCache([CACHE_KEYS.FEATURED_APPS]);
+  return res;
 };
 
 export const getAllApps = () => {
@@ -141,11 +153,9 @@ export const getAllApps = () => {
 };
 
 export const getFeaturedApps = async () => {
-  // 1. Try Cache
   const cached = await cache.get(CACHE_KEYS.FEATURED_APPS);
   if (cached) return cached;
 
-  // 2. Fetch DB
   const stmt = db.prepare(`
     SELECT apps.*, users.username as author 
     FROM apps 
@@ -154,17 +164,13 @@ export const getFeaturedApps = async () => {
     ORDER BY apps.created_at DESC
   `);
   const data = stmt.all();
-
-  // 3. Set Cache (TTL 24 hours, but we invalidate on write anyway)
   await cache.set(CACHE_KEYS.FEATURED_APPS, data, 1000 * 60 * 60 * 24);
-
   return data;
 };
 
 export const updateAppFeatured = (appId, isFeatured) => {
   const stmt = db.prepare('UPDATE apps SET is_featured = ? WHERE id = ?');
   const res = stmt.run(isFeatured, appId);
-  // CLEAR CACHE
   invalidateCache([CACHE_KEYS.FEATURED_APPS]);
   return res;
 };
@@ -181,11 +187,11 @@ export const setSetting = (key, value) => {
   return stmt.run(key, value);
 };
 
-// --- BOOKMARK FUNCTIONS ---
-
+// --- Bookmark Functions ---
 export const createBookmark = (userId, url, title, icon, isPublic, isProtected = 0) => {
   const stmt = db.prepare('INSERT INTO bookmarks (user_id, url, title, icon, is_public, is_protected) VALUES (?, ?, ?, ?, ?, ?)');
   const res = stmt.run(userId, url, title, icon, isPublic, isProtected);
+  invalidateCache([CACHE_KEYS.PUBLIC_BOOKMARKS]);
   return res;
 };
 
@@ -195,11 +201,9 @@ export const getBookmarksByUser = (userId) => {
 };
 
 export const getPublicBookmarks = async () => {
-  // 1. Try Cache
   const cached = await cache.get(CACHE_KEYS.PUBLIC_BOOKMARKS);
   if (cached) return cached;
 
-  // 2. Fetch DB
   const data = db.prepare(`
     SELECT bookmarks.*, users.username as author 
     FROM bookmarks JOIN users ON bookmarks.user_id = users.id 
@@ -207,16 +211,13 @@ export const getPublicBookmarks = async () => {
     ORDER BY bookmarks.created_at DESC
   `).all();
 
-  // 3. Set Cache
   await cache.set(CACHE_KEYS.PUBLIC_BOOKMARKS, data, 1000 * 60 * 60 * 24);
-
   return data;
 };
 
 export const deleteBookmark = (id, userId) => {
   const stmt = db.prepare('DELETE FROM bookmarks WHERE id = ? AND user_id = ?');
   const res = stmt.run(id, userId);
-  // CLEAR CACHE
   invalidateCache([CACHE_KEYS.PUBLIC_BOOKMARKS]);
   return res;
 };
@@ -228,8 +229,9 @@ export const setUserPin = (userId, hashedPin) => {
 
 export const getProtectedBookmarks = (userId) => {
   return db.prepare(`
-        SELECT bookmarks.*, users.username as author 
-        FROM bookmarks JOIN users ON bookmarks.user_id = users.id 
-        WHERE bookmarks.is_protected = 1 AND bookmarks.user_id = ?
-    `).all(userId);
+    SELECT bookmarks.*, users.username as author 
+    FROM bookmarks JOIN users ON bookmarks.user_id = users.id 
+    WHERE bookmarks.is_protected = 1 AND bookmarks.user_id = ?
+    ORDER BY bookmarks.created_at DESC
+  `).all(userId);
 };

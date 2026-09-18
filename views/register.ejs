@@ -1,28 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-base-200/50">
 <head>
-    <meta charset="UTF-8">
-    <title>Register - HTML Hoster</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <%- include('partials/head', { title: 'Register - Apps Loader' }) %>
 </head>
-<body class="bg-gray-100 h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded shadow-md w-96">
-        <h1 class="text-2xl font-bold mb-6 text-center text-green-600">Join Us</h1>
-        <% if (error) { %>
-            <div class="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm"><%= error %></div>
-        <% } %>
-        <form action="/register" method="POST" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Username</label>
-                <input type="text" name="username" required class="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-green-500 focus:border-green-500">
+<body class="h-full flex items-center justify-center p-4 antialiased">
+    <div class="card bg-base-100 shadow-xl border border-base-200 w-full max-w-md rounded-2xl p-2 sm:p-4">
+        <div class="card-body">
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-secondary text-secondary-content flex items-center justify-center font-black text-xl mx-auto shadow-sm mb-3">
+                    A
+                </div>
+                <h1 class="text-2xl font-black text-base-content tracking-tight">Create Account</h1>
+                <p class="text-xs text-base-content/60 mt-1">Join Apps Loader to deploy and bookmark tools</p>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" name="password" required class="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-green-500 focus:border-green-500">
+
+            <% if (error) { %>
+                <div role="alert" class="alert alert-error text-xs p-3 rounded-xl mb-4">
+                    <svg class="w-4 h-4 stroke-current shrink-0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span><%= error %></span>
+                </div>
+            <% } %>
+
+            <form action="/register" method="POST" class="space-y-4">
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">Desired Username</span>
+                    </label>
+                    <input type="text" name="username" required autofocus placeholder="Choose a username" class="input input-bordered input-sm sm:input-md w-full focus:input-secondary">
+                </div>
+
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">Password</span>
+                    </label>
+                    <input type="password" name="password" required placeholder="Choose a secure password" class="input input-bordered input-sm sm:input-md w-full focus:input-secondary">
+                </div>
+
+                <button type="submit" class="btn btn-secondary w-full shadow-sm mt-2 text-white">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="text-center text-xs text-base-content/60 mt-6 pt-4 border-t border-base-200">
+                Already have an account? 
+                <a href="/login" class="link link-secondary font-semibold">Sign in here</a>
             </div>
-            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Register</button>
-        </form>
-        <p class="mt-4 text-center text-sm">Already exist? <a href="/login" class="text-green-600 hover:underline">Login</a></p>
+        </div>
     </div>
 </body>
 </html>

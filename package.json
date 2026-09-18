@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/server.js -e js,ejs",
-    "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./public/style.css --watch"
+    "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./public/style.css --minify",
+    "dev:css": "npx @tailwindcss/cli -i ./src/input.css -o ./public/style.css --watch"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,7 @@
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.5.0",
     "cookie-parser": "^1.4.7",
+    "daisyui": "^5.7.40",
     "ejs": "^3.1.10",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",

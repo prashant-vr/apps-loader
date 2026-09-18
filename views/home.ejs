@@ -1,182 +1,189 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="h-full bg-base-200/40">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - HTML Hoster</title>
-    <link href="/style.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Hub - Apps Loader</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/style.css" rel="stylesheet">
     <style>
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        .link-card {
-            transition: all 0.2s ease;
-        }
-
-        .link-card:hover {
-            transform: translateY(-2px);
-        }
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.6); }
+        .link-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .link-card:hover { transform: translateY(-2px); }
     </style>
 </head>
 
-<body
-    class="bg-gray-50 text-gray-800 font-sans h-screen flex overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
+<body class="h-screen flex overflow-hidden bg-base-200/30 text-base-content antialiased selection:bg-primary/20 selection:text-primary">
 
     <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex z-10 flex-shrink-0">
-        <div class="p-6 flex items-center gap-3 border-b border-gray-100">
-            <div class="bg-indigo-600 p-2 rounded-lg text-white">
-                <i data-lucide="layout-grid" class="w-5 h-5"></i>
+    <aside class="w-64 bg-base-100 border-r border-base-200 flex flex-col hidden md:flex z-10 shrink-0">
+        <!-- Logo Header -->
+        <div class="p-5 flex items-center gap-3 border-b border-base-200">
+            <div class="w-9 h-9 rounded-xl bg-primary text-primary-content flex items-center justify-center font-extrabold shadow-sm">
+                A
             </div>
-            <h1 class="text-xl font-bold text-gray-900 tracking-tight">Hub</h1>
+            <div>
+                <h1 class="text-base font-extrabold text-base-content tracking-tight leading-none">Apps<span class="text-primary">Loader</span></h1>
+                <p class="text-[10px] text-base-content/50 uppercase tracking-widest mt-0.5">Resource Hub</p>
+            </div>
         </div>
 
-        <div class="p-4 flex-1 overflow-y-auto">
-            <div class="mb-6">
+        <!-- Navigation & Categories -->
+        <div class="p-4 flex-1 overflow-y-auto space-y-5">
+            <!-- User Controls -->
+            <div class="space-y-1.5">
                 <% if (userToken) { %>
-                    <a href="/dashboard"
-                        class="flex items-center gap-3 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium transition-colors hover:bg-indigo-100 mb-2">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                        Go to Dashboard
+                    <a href="/dashboard" class="btn btn-primary btn-sm w-full justify-start gap-2 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                        Dashboard
                     </a>
-                    <a href="/logout"
-                        class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <a href="/fiddle" class="btn btn-ghost btn-sm w-full justify-start gap-2 text-base-content/70">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                        Code Editor
+                    </a>
+                    <a href="/logout" class="btn btn-ghost btn-sm w-full justify-start gap-2 text-error/80 hover:text-error hover:bg-error/10">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                         Logout
                     </a>
-                    <% } else { %>
-                        <a href="/login"
-                            class="flex items-center gap-3 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium transition-colors hover:bg-gray-800 mb-2">
-                            <i data-lucide="log-in" class="w-4 h-4"></i>
-                            Login
-                        </a>
-                        <a href="/register"
-                            class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i>
-                            Register
-                        </a>
-                        <% } %>
+                <% } else { %>
+                    <a href="/login" class="btn btn-primary btn-sm w-full justify-start gap-2 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                        Login
+                    </a>
+                    <a href="/register" class="btn btn-ghost btn-sm w-full justify-start gap-2 text-base-content/70">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        Register
+                    </a>
+                <% } %>
             </div>
 
-            <h2 onlink-target="collections-header" ondblclick="openPinModal()"
-                class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3 cursor-help select-none">
-                Collections
-            </h2>
+            <!-- Categories Section -->
+            <div>
+                <div class="flex items-center justify-between px-2 mb-2">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/50 select-none">
+                        Collections
+                    </h2>
+                    <button onclick="openPinModal()" class="btn btn-ghost btn-circle btn-xs text-base-content/40 hover:text-error" title="Unlock Protected Vault">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </button>
+                </div>
 
-            <nav id="category-nav" class="space-y-1">
-                <!-- Injected via JS -->
-            </nav>
+                <ul id="category-nav" class="menu menu-sm p-0 gap-0.5">
+                    <!-- Injected dynamically via JS -->
+                </ul>
+            </div>
         </div>
 
+        <!-- Footer / Fast Action -->
         <% if (userToken) { %>
-            <div class="p-4 border-t border-gray-100">
-                <a href="/dashboard"
-                    class="w-full flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 py-2.5 px-4 rounded-xl font-medium transition-colors">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    Add New Link
+            <div class="p-4 border-t border-base-200">
+                <a href="/dashboard" class="btn btn-outline btn-primary btn-sm w-full gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Add Link / Deploy
                 </a>
             </div>
-            <% } %>
+        <% } %>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
         <!-- Mobile Header -->
-        <header class="md:hidden bg-white border-b border-gray-200 p-4 flex justify-between items-center z-10 shrink-0">
-            <div class="flex items-center gap-2">
-                <div class="bg-indigo-600 p-1.5 rounded text-white">
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+        <header class="md:hidden bg-base-100 border-b border-base-200 p-4 flex justify-between items-center z-10 shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-primary text-primary-content flex items-center justify-center font-bold text-sm">
+                    A
                 </div>
-                <h1 class="text-lg font-bold text-gray-900">Hub</h1>
+                <h1 class="text-lg font-extrabold text-base-content">Apps<span class="text-primary">Loader</span></h1>
             </div>
-            <% if (userToken) { %>
-                <a href="/dashboard" class="text-indigo-600 p-2 bg-indigo-50 rounded-lg">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                </a>
+            <div class="flex items-center gap-2">
+                <button onclick="openPinModal()" class="btn btn-ghost btn-circle btn-sm text-error" title="Unlock Vault">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </button>
+                <% if (userToken) { %>
+                    <a href="/dashboard" class="btn btn-primary btn-sm btn-circle">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    </a>
                 <% } else { %>
-                    <a href="/login" class="text-gray-600 font-medium text-sm">Login</a>
-                    <% } %>
+                    <a href="/login" class="btn btn-primary btn-sm">Login</a>
+                <% } %>
+            </div>
         </header>
 
-        <!-- Top Bar -->
-        <div
-            class="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10 px-6 py-4 flex justify-between items-center hidden md:flex shrink-0">
-            <h2 id="current-category-title" class="text-2xl font-bold text-gray-800">All Links</h2>
-            <div class="relative w-72">
-                <i data-lucide="search"
-                    class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="search-input" placeholder="Search links & apps..."
-                    class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+        <!-- Top Search Bar -->
+        <div class="bg-base-100/90 backdrop-blur-md border-b border-base-200 sticky top-0 z-10 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-3">
+                <h2 id="current-category-title" class="text-xl sm:text-2xl font-black text-base-content tracking-tight">All Resources</h2>
+                <div id="vault-status-badge" class="hidden">
+                    <span class="badge badge-error badge-sm gap-1 font-semibold">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                        Vault Unlocked
+                    </span>
+                </div>
+            </div>
+            <div class="relative w-full sm:w-80">
+                <div class="join w-full">
+                    <span class="join-item btn btn-sm btn-ghost bg-base-200/70 border border-r-0 border-base-300">
+                        <svg class="w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Search apps & bookmarks..." class="join-item input input-bordered input-sm w-full focus:input-primary text-sm bg-base-200/40">
+                </div>
             </div>
         </div>
 
-        <!-- Links Grid -->
+        <!-- Links Grid Area -->
         <div class="flex-1 overflow-y-auto p-6 lg:p-8 scroll-smooth">
-            <div id="links-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
-                <!-- Links injected here by JS -->
+            <div id="links-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
+                <!-- Cards injected here via JS -->
             </div>
 
             <!-- Empty State -->
-            <div id="empty-state"
-                class="hidden flex-col items-center justify-center h-full text-center max-w-sm mx-auto opacity-70 mt-20">
-                <div class="bg-gray-100 p-4 rounded-full mb-4">
-                    <i data-lucide="search-x" class="w-8 h-8 text-gray-400"></i>
+            <div id="empty-state" class="hidden flex-col items-center justify-center h-64 text-center max-w-sm mx-auto mt-12">
+                <div class="w-14 h-14 rounded-2xl bg-base-200 flex items-center justify-center text-base-content/40 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-1">No links found</h3>
-                <p class="text-sm text-gray-500 mb-6">Try adjusting your search or category filter.</p>
+                <h3 class="text-base font-bold text-base-content mb-1">No items found</h3>
+                <p class="text-xs text-base-content/60 mb-4">Try adjusting your search query or collection filter.</p>
                 <% if (userToken) { %>
-                    <a href="/dashboard"
-                        class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
-                        Go to Dashboard
-                    </a>
-                    <% } %>
+                    <a href="/dashboard" class="btn btn-primary btn-sm">Go to Dashboard</a>
+                <% } %>
             </div>
         </div>
     </main>
-    <div id="pin-modal"
-        class="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[100] hidden">
-        <div class="bg-white rounded-2xl p-6 w-80 shadow-2xl border border-gray-100">
-            <div class="text-center mb-4">
-                <div class="bg-red-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <i data-lucide="lock" class="w-6 h-6 text-red-600"></i>
+
+    <!-- DaisyUI PIN Vault Modal -->
+    <dialog id="pin_modal" class="modal">
+        <div class="modal-box max-w-xs text-center p-6 rounded-2xl border border-base-200 shadow-2xl">
+            <div class="w-12 h-12 rounded-2xl bg-error/10 text-error flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h3 class="font-bold text-lg text-base-content">Security Vault</h3>
+            <p class="text-xs text-base-content/60 mt-1 mb-4">Enter your security PIN to access protected links.</p>
+
+            <form method="dialog" onsubmit="event.preventDefault(); verifyPin();">
+                <input type="password" id="pin-input" maxlength="8" placeholder="••••" class="input input-bordered input-error w-full text-center text-2xl tracking-[0.8em] font-mono font-bold py-2 mb-4 focus:outline-none">
+                <div id="pin-error" class="text-xs text-error font-medium mb-3 hidden">Invalid PIN. Try again.</div>
+                <div class="modal-action mt-2 grid grid-cols-2 gap-2">
+                    <button type="button" onclick="closePinModal()" class="btn btn-ghost btn-sm">Cancel</button>
+                    <button type="button" onclick="verifyPin()" id="verify-btn" class="btn btn-error btn-sm text-white">Unlock</button>
                 </div>
-                <h3 class="font-bold text-gray-900">Unlock Vault</h3>
-                <p class="text-xs text-gray-500">Enter your security PIN to show hidden links.</p>
-            </div>
-            <input type="password" id="pin-input" maxlength="8"
-                class="w-full text-center text-2xl tracking-[1em] font-bold py-3 border-2 border-gray-100 rounded-xl focus:border-red-500 focus:outline-none bg-gray-50 mb-4">
-            <div class="flex gap-2">
-                <button onclick="closePinModal()" class="flex-1 py-2 text-sm font-medium text-gray-400">Cancel</button>
-                <button onclick="verifyPin()" id="verify-btn"
-                    class="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-red-200">Unlock</button>
-            </div>
+            </form>
         </div>
-    </div>
-    <!-- Data Injection Script -->
+        <form method="dialog" class="modal-backdrop">
+            <button onclick="closePinModal()">close</button>
+        </form>
+    </dialog>
+
+    <!-- Data Injection & Fast Client-Side Logic -->
     <script>
-        // FIX: Absolutely NO spaces between < % - 
-        const rawApps = <% - JSON.stringify(featuredApps) %>;
-        const rawBookmarks = <% - JSON.stringify(publicBookmarks) %>;
+        const rawApps = <%- JSON.stringify(featuredApps || []) %>;
+        const rawBookmarks = <%- JSON.stringify(publicBookmarks || []) %>;
 
         const links = [
             ...rawApps.map(app => ({
@@ -185,16 +192,17 @@
                 url: `/sites/${app.slug}/`,
                 category: 'Apps',
                 type: 'app',
-                author: app.author,
+                author: app.author || 'User',
                 initial: (app.title || app.slug).charAt(0).toUpperCase()
             })),
             ...rawBookmarks.map(bm => ({
                 id: 'bm-' + bm.id,
                 title: bm.title || 'Untitled',
                 url: bm.url,
+                icon: bm.icon,
                 category: 'Bookmarks',
                 type: 'bookmark',
-                author: bm.author,
+                author: bm.author || 'User',
                 initial: (bm.title || 'U').charAt(0).toUpperCase()
             }))
         ];
@@ -203,171 +211,220 @@
         let searchQuery = '';
         let isVaultUnlocked = false;
 
-        // --- Core Functions ---
-
         function renderSidebar() {
             const nav = document.getElementById('category-nav');
             if (!nav) return;
             const categories = Array.from(new Set(links.map(link => link.category))).sort();
 
             let html = `
-            <a href="#" onclick="setFilter('All')" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentFilter === 'All' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}">
-                <i data-lucide="layers" class="w-4 h-4 ${currentFilter === 'All' ? 'text-indigo-600' : 'text-gray-400'}"></i>
-                All Links
-                <span class="ml-auto bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs">${links.length}</span>
-            </a>
-        `;
+                <li>
+                    <a href="#" onclick="setFilter('All'); return false;" class="${currentFilter === 'All' ? 'active font-semibold' : ''} justify-between">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                            All Resources
+                        </span>
+                        <span class="badge badge-sm badge-ghost">${links.length}</span>
+                    </a>
+                </li>
+            `;
 
             categories.forEach(category => {
                 const count = links.filter(l => l.category === category).length;
                 const isActive = currentFilter === category;
-                let iconName = category === 'Apps' ? 'cpu' : (category === 'Protected' ? 'lock' : 'bookmark');
+                const isProtectedCat = category === 'Vault' || category === 'Protected';
 
                 html += `
-                <a href="#" onclick="setFilter('${category}')" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}">
-                    <i data-lucide="${iconName}" class="w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-gray-400'}"></i>
-                    ${category}
-                    <span class="ml-auto ${isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'} py-0.5 px-2 rounded-full text-xs">${count}</span>
-                </a>
-            `;
+                    <li>
+                        <a href="#" onclick="setFilter('${category}'); return false;" class="${isActive ? 'active font-semibold' : ''} justify-between">
+                            <span class="flex items-center gap-2">
+                                ${category === 'Apps' 
+                                    ? '<svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>'
+                                    : (isProtectedCat
+                                        ? '<svg class="w-4 h-4 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>'
+                                        : '<svg class="w-4 h-4 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
+                                    )}
+                                ${category}
+                            </span>
+                            <span class="badge badge-sm ${isActive ? 'badge-primary' : 'badge-ghost'}">${count}</span>
+                        </a>
+                    </li>
+                `;
             });
+
             nav.innerHTML = html;
-            lucide.createIcons();
         }
 
         function renderLinks() {
             const container = document.getElementById('links-container');
+            const emptyState = document.getElementById('empty-state');
             if (!container) return;
 
-            let filtered = links.filter(l => {
+            const filtered = links.filter(l => {
                 const matchesCat = currentFilter === 'All' || l.category === currentFilter;
-                const matchesSearch = l.title.toLowerCase().includes(searchQuery) || l.author.toLowerCase().includes(searchQuery);
+                const matchesSearch = l.title.toLowerCase().includes(searchQuery) || l.author.toLowerCase().includes(searchQuery) || (l.url && l.url.toLowerCase().includes(searchQuery));
                 return matchesCat && matchesSearch;
             });
 
-            container.innerHTML = filtered.map(link => `
-            <div class="link-card bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md flex flex-col h-full group relative">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shrink-0 ${link.category === 'Apps' ? 'bg-indigo-500' : (link.category === 'Protected' ? 'bg-red-500' : 'bg-slate-400')}">
-                        ${link.initial}
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+
+            container.innerHTML = filtered.map(link => {
+                const isApp = link.type === 'app';
+                const isVault = link.category === 'Vault' || link.category === 'Protected';
+                
+                return `
+                    <div class="link-card card bg-base-100 shadow-sm border border-base-200 hover:border-primary/40 hover:shadow-md rounded-2xl p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="avatar placeholder">
+                                    <div class="w-11 h-11 rounded-xl font-black text-sm flex items-center justify-center ${isApp ? 'bg-primary text-primary-content shadow-sm' : (isVault ? 'bg-error text-white' : 'bg-secondary text-secondary-content')}">
+                                        ${link.icon 
+                                            ? `<img src="${link.icon}" class="w-7 h-7 object-contain" onerror="this.parentElement.innerHTML='${link.initial}'">`
+                                            : link.initial}
+                                    </div>
+                                </div>
+                                <span class="badge badge-xs font-bold uppercase tracking-wider ${isApp ? 'badge-primary badge-outline' : (isVault ? 'badge-error' : 'badge-ghost')}">
+                                    ${isVault ? 'Vault' : (isApp ? 'App' : 'Bookmark')}
+                                </span>
+                            </div>
+
+                            <h3 class="font-bold text-base text-base-content truncate mb-1" title="${link.title}">
+                                ${link.title}
+                            </h3>
+                            <p class="text-xs text-base-content/50 font-mono truncate" title="${link.url}">
+                                ${link.url}
+                            </p>
+                        </div>
+
+                        <div class="mt-5 pt-3 border-t border-base-200 flex items-center justify-between gap-2">
+                            <span class="text-[11px] text-base-content/50 font-medium">by ${link.author}</span>
+                            <a href="${link.url}" target="_blank" class="btn btn-sm btn-ghost hover:btn-primary gap-1.5 font-semibold text-xs">
+                                Open ↗
+                            </a>
+                        </div>
                     </div>
-                    <div class="min-w-0">
-                        <h3 class="font-semibold text-gray-900 truncate">${link.title}</h3>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-tight">by ${link.author}</p>
-                    </div>
-                </div>
-                <div class="mt-auto pt-4 flex gap-2">
-                    <a href="${link.url}" target="_blank" class="flex-1 flex items-center justify-center gap-2 bg-gray-50 hover:bg-indigo-600 hover:text-white py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200">Open</a>
-                </div>
-            </div>
-        `).join('');
-            lucide.createIcons();
+                `;
+            }).join('');
         }
 
         function renderApp() {
             renderSidebar();
             renderLinks();
-            if (document.getElementById('current-category-title')) {
-                document.getElementById('current-category-title').textContent = currentFilter === 'All' ? 'All Links' : currentFilter;
+            const titleEl = document.getElementById('current-category-title');
+            if (titleEl) {
+                titleEl.textContent = currentFilter === 'All' ? 'All Resources' : currentFilter;
             }
         }
-
-        // --- Global Actions (attached to window for HTML events) ---
 
         window.setFilter = (category) => {
             currentFilter = category;
             renderApp();
         };
 
-        window.copyUrl = (url) => {
-            const finalUrl = url.startsWith('/') ? window.location.origin + url : url;
-            navigator.clipboard.writeText(finalUrl);
-        };
-
-        // --- Vault / PIN Functions ---
-
         window.openPinModal = () => {
-            if (isVaultUnlocked) return;
-            const modal = document.getElementById('pin-modal');
+            const modal = document.getElementById('pin_modal');
+            const err = document.getElementById('pin-error');
+            if (err) err.classList.add('hidden');
             if (modal) {
-                modal.classList.remove('hidden');
-                document.getElementById('pin-input').focus();
+                modal.showModal();
+                setTimeout(() => document.getElementById('pin-input')?.focus(), 100);
             }
         };
 
         window.closePinModal = () => {
-            const modal = document.getElementById('pin-modal');
+            const modal = document.getElementById('pin_modal');
             if (modal) {
-                modal.classList.add('hidden');
+                modal.close();
                 document.getElementById('pin-input').value = '';
             }
         };
 
         window.verifyPin = async () => {
             const pinInput = document.getElementById('pin-input');
-            const pin = pinInput.value;
+            const pin = pinInput.value.trim();
             const btn = document.getElementById('verify-btn');
-            const targetUser = links.length > 0 ? links[0].author : 'admin';
+            const err = document.getElementById('pin-error');
+
+            if (!pin || pin.length < 4) {
+                if (err) {
+                    err.textContent = 'Please enter at least 4 digits.';
+                    err.classList.remove('hidden');
+                }
+                return;
+            }
 
             btn.textContent = 'Checking...';
             btn.disabled = true;
+            if (err) err.classList.add('hidden');
 
             try {
+                // Guideline 5: Use native fetch
                 const res = await fetch('/api/verify-pin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pin, username: targetUser })
+                    body: JSON.stringify({ pin })
                 });
                 const data = await res.json();
 
-                if (data.success) {
+                if (data.success && data.links) {
                     isVaultUnlocked = true;
-                    const newLinks = data.links.map(bm => ({
-                        id: 'bm-' + bm.id,
-                        title: bm.title || 'Untitled',
+                    const protectedItems = data.links.map(bm => ({
+                        id: 'bm-protected-' + bm.id,
+                        title: bm.title || 'Protected Link',
                         url: bm.url,
-                        category: 'Protected',
-                        author: bm.author,
-                        initial: (bm.title || 'P').charAt(0).toUpperCase()
+                        icon: bm.icon,
+                        category: 'Vault',
+                        type: 'protected',
+                        author: data.author || bm.author || 'Admin',
+                        initial: (bm.title || 'V').charAt(0).toUpperCase()
                     }));
 
-                    links.push(...newLinks);
-                    closePinModal();
-                    renderApp();
+                    // Add only items that aren't already present
+                    protectedItems.forEach(item => {
+                        if (!links.some(existing => existing.id === item.id)) {
+                            links.push(item);
+                        }
+                    });
 
-                    const header = document.querySelector('[onlink-target="collections-header"]');
-                    if (header) {
-                        header.innerHTML = 'Vault Unlocked <i data-lucide="unlock" class="inline w-3 h-3 text-red-500 ml-1"></i>';
-                        lucide.createIcons();
-                    }
+                    document.getElementById('vault-status-badge')?.classList.remove('hidden');
+                    closePinModal();
+                    setFilter('Vault');
                 } else {
-                    alert('Invalid PIN');
+                    if (err) {
+                        err.textContent = data.error || 'Invalid security PIN.';
+                        err.classList.remove('hidden');
+                    }
                 }
             } catch (e) {
-                alert('Verification failed');
+                console.error('[Home] PIN verification failed:', e);
+                if (err) {
+                    err.textContent = 'Server verification failed.';
+                    err.classList.remove('hidden');
+                }
             } finally {
                 btn.textContent = 'Unlock';
                 btn.disabled = false;
             }
         };
 
-        // --- Initialization ---
-
         document.addEventListener('DOMContentLoaded', () => {
             renderApp();
-            lucide.createIcons();
 
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
-                searchInput.focus();
                 searchInput.addEventListener('input', (e) => {
-                    searchQuery = e.target.value.toLowerCase();
+                    searchQuery = e.target.value.toLowerCase().trim();
                     renderLinks();
                 });
             }
         });
     </script>
-
 </body>
-
 </html>

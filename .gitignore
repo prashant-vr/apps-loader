@@ -7,3 +7,4 @@ port.txt
 pnpm-lock.yaml
 database.sqlite-shm
 database.sqlite-wal
+.env

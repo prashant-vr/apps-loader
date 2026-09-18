@@ -33,7 +33,7 @@ const invalidateCache = async (keys) => {
   }
 };
 
-// Initialize Tables & Indexes
+// Initialize Tables
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,12 +72,36 @@ db.exec(`
     value TEXT
   );
 
+  INSERT OR IGNORE INTO settings (key, value) VALUES ('auto_approve', '0');
+`);
+
+// Auto-migration helper for existing legacy databases
+const ensureColumn = (table, column, definition) => {
+  try {
+    const tableInfo = db.prepare(`PRAGMA table_info(${table})`).all();
+    const exists = tableInfo.some((col) => col.name === column);
+    if (!exists) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+      console.log(`[DB Migration] Added missing column '${column}' to '${table}' table.`);
+    }
+  } catch (err) {
+    console.error(`[DB Migration] Error checking column '${column}' in '${table}':`, err.message);
+  }
+};
+
+ensureColumn('users', 'pin', 'TEXT');
+ensureColumn('users', 'role', "TEXT DEFAULT 'user'");
+ensureColumn('users', 'is_approved', 'INTEGER DEFAULT 0');
+ensureColumn('apps', 'is_featured', 'INTEGER DEFAULT 0');
+ensureColumn('bookmarks', 'is_public', 'INTEGER DEFAULT 1');
+ensureColumn('bookmarks', 'is_protected', 'INTEGER DEFAULT 0');
+
+// Create Performance Indexes safely after columns are guaranteed to exist
+db.exec(`
   CREATE INDEX IF NOT EXISTS idx_apps_user ON apps(user_id);
   CREATE INDEX IF NOT EXISTS idx_apps_featured ON apps(is_featured);
   CREATE INDEX IF NOT EXISTS idx_bookmarks_user ON bookmarks(user_id);
   CREATE INDEX IF NOT EXISTS idx_bookmarks_public ON bookmarks(is_public, is_protected);
-
-  INSERT OR IGNORE INTO settings (key, value) VALUES ('auto_approve', '0');
 `);
 
 // --- User Functions ---

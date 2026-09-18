@@ -37,19 +37,28 @@
             <span class="font-bold text-sm tracking-tight hidden sm:inline-block">
                 Apps<span class="text-primary font-extrabold">Fiddle</span>
             </span>
-            <% if (prefill) { %>
+            <% if (prefill && prefill.slug) { %>
                 <span class="badge badge-neutral badge-sm font-mono text-[11px] text-primary">Editing: <%= prefill.slug %></span>
             <% } %>
         </div>
 
         <div class="flex items-center gap-2">
-            <button onclick="runCode()" class="btn btn-success btn-sm text-white gap-1.5 shadow-sm">
+            <!-- Clear All Button -->
+            <button type="button" onclick="clearAllCode()" class="btn btn-ghost btn-sm text-error/80 hover:text-error hover:bg-error/10 gap-1.5" title="Clear all editor contents">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span class="hidden sm:inline">Clear All</span>
+            </button>
+
+            <!-- Run Code Button -->
+            <button type="button" onclick="runCode()" class="btn btn-success btn-sm text-white gap-1.5 shadow-sm">
                 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 Run Preview
             </button>
-            <button onclick="openSaveModal()" class="btn btn-primary btn-sm text-white gap-1.5 shadow-sm">
+
+            <!-- Save / Publish Button -->
+            <button type="button" onclick="openSaveModal()" class="btn btn-primary btn-sm text-white gap-1.5 shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                <%= prefill ? 'Update Deployment' : 'Publish Project' %>
+                <%= prefill && prefill.slug ? 'Update Deployment' : 'Publish Project' %>
             </button>
         </div>
     </nav>
@@ -58,20 +67,34 @@
     <div class="flex-1 flex overflow-hidden" id="workspace">
         <!-- Editor Panel -->
         <div id="editorPanel" class="flex flex-col min-w-[240px]" style="width: 45%;">
-            <!-- Code Tabs -->
-            <div class="flex bg-neutral-900 border-b border-neutral-800 text-xs font-semibold">
-                <button onclick="switchTab('html')" id="tab-html" class="flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors">HTML</button>
-                <button onclick="switchTab('css')" id="tab-css" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors">CSS</button>
-                <button onclick="switchTab('js')" id="tab-js" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors">JavaScript</button>
+            <!-- Code Tabs Header with Utilities -->
+            <div class="flex items-center bg-neutral-900 border-b border-neutral-800 text-xs font-semibold px-1">
+                <div class="flex flex-1">
+                    <button type="button" onclick="switchTab('html')" id="tab-html" class="flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors">
+                        HTML
+                    </button>
+                    <button type="button" onclick="switchTab('css')" id="tab-css" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors">
+                        CSS
+                    </button>
+                    <button type="button" onclick="switchTab('js')" id="tab-js" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors">
+                        JavaScript
+                    </button>
+                </div>
+
+                <!-- Split Helper Button -->
+                <button type="button" onclick="smartExtractInlineCode()" id="splitHelperBtn" class="btn btn-ghost btn-xs text-secondary hover:text-secondary-focus gap-1 hidden px-2 font-normal" title="Extract <style> and <script> from HTML into CSS and JS tabs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    Split Tags
+                </button>
             </div>
 
-            <!-- Textareas -->
-            <div class="relative flex-1 bg-neutral-950">
-                <textarea id="htmlInput" class="editor-area w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="<!-- Write your HTML structure here -->"><%- prefill ? prefill.html : '' %></textarea>
+            <!-- Textareas (Populated safely via JavaScript DOM API to prevent escaping bugs) -->
+            <div class="relative flex-1 bg-neutral-950 overflow-hidden">
+                <textarea id="htmlInput" class="editor-area w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="<!-- Write your HTML structure or paste complete document here -->"></textarea>
 
-                <textarea id="cssInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="/* Write custom CSS styles here */"><%- prefill ? prefill.css : '' %></textarea>
+                <textarea id="cssInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="/* Write custom CSS styles here */"></textarea>
 
-                <textarea id="jsInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="// Write JavaScript code here"><%- prefill ? prefill.js : '' %></textarea>
+                <textarea id="jsInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="// Write JavaScript code here"></textarea>
             </div>
         </div>
 
@@ -80,7 +103,8 @@
 
         <!-- Live Preview Iframe Panel -->
         <div class="flex-1 bg-white flex flex-col min-w-[240px] relative">
-            <iframe id="preview" class="w-full h-full border-none bg-white" sandbox="allow-scripts allow-modals allow-same-origin allow-forms"></iframe>
+            <!-- Sandbox WITHOUT allow-same-origin to prevent preview scripts from redirecting or reloading the parent page -->
+            <iframe id="preview" class="w-full h-full border-none bg-white" sandbox="allow-scripts allow-modals"></iframe>
             <div id="iframeOverlay" class="absolute inset-0 hidden z-20"></div>
         </div>
     </div>
@@ -90,7 +114,7 @@
         <div class="modal-box bg-base-100 text-base-content max-w-sm rounded-2xl border border-base-200 shadow-2xl p-6">
             <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                <%= prefill ? 'Update Deployment' : 'Publish New App' %>
+                <%= prefill && prefill.slug ? 'Update Deployment' : 'Publish New App' %>
             </h3>
 
             <div class="space-y-3">
@@ -98,7 +122,7 @@
                     <label class="label py-1">
                         <span class="label-text text-xs font-semibold uppercase tracking-wider text-base-content/70">Project Title</span>
                     </label>
-                    <input type="text" id="saveTitle" value="<%= prefill ? prefill.title : '' %>" placeholder="e.g. My Interactive Game" class="input input-bordered input-sm w-full">
+                    <input type="text" id="saveTitle" value="<%= prefill && prefill.title ? prefill.title : '' %>" placeholder="e.g. My Interactive Game" class="input input-bordered input-sm w-full">
                 </div>
 
                 <div class="form-control">
@@ -107,9 +131,9 @@
                     </label>
                     <div class="join w-full">
                         <span class="join-item btn btn-sm btn-disabled bg-base-200 text-base-content/60 font-mono text-xs">/sites/</span>
-                        <input type="text" id="saveSlug" value="<%= prefill ? prefill.slug : '' %>" <%= prefill ? 'readonly' : '' %> class="join-item input input-bordered input-sm w-full font-mono text-xs <%= prefill ? 'bg-base-200 cursor-not-allowed' : '' %>" placeholder="my-app">
+                        <input type="text" id="saveSlug" value="<%= prefill && prefill.slug ? prefill.slug : '' %>" <%= prefill && prefill.slug ? 'readonly' : '' %> class="join-item input input-bordered input-sm w-full font-mono text-xs <%= prefill && prefill.slug ? 'bg-base-200 cursor-not-allowed' : '' %>" placeholder="my-app">
                     </div>
-                    <% if (!prefill) { %>
+                    <% if (!prefill || !prefill.slug) { %>
                         <label class="label py-0.5">
                             <span class="label-text-alt text-base-content/50 text-[10px]">Leave blank for an auto-generated random slug.</span>
                         </label>
@@ -120,34 +144,168 @@
             <div class="modal-action mt-6">
                 <button type="button" onclick="closeSaveModal()" class="btn btn-ghost btn-sm">Cancel</button>
                 <button type="button" onclick="submitSave()" id="saveSubmitBtn" class="btn btn-primary btn-sm text-white">
-                    <%= prefill ? 'Save Updates' : 'Publish App' %>
+                    <%= prefill && prefill.slug ? 'Save Updates' : 'Publish App' %>
                 </button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button onclick="closeSaveModal()">close</button>
+            <button type="button" onclick="closeSaveModal()">close</button>
         </form>
     </dialog>
 
+    <!-- Prefill JSON Data safely encoded to avoid breaking textarea or script HTML tags -->
+    <script id="prefill-json" type="application/json">
+        <%- JSON.stringify(prefill || null).replace(/</g, '\\u003c') %>
+    </script>
+
     <script>
+        const currentSlug = '<%= prefill && prefill.slug ? prefill.slug : "" %>';
+
+        // 1. Safe Initialization of Textareas
+        function initEditors() {
+            const prefillEl = document.getElementById('prefill-json');
+            let loaded = false;
+
+            if (prefillEl && prefillEl.textContent.trim()) {
+                try {
+                    const data = JSON.parse(prefillEl.textContent);
+                    if (data) {
+                        document.getElementById('htmlInput').value = data.html || '';
+                        document.getElementById('cssInput').value = data.css || '';
+                        document.getElementById('jsInput').value = data.js || '';
+                        loaded = true;
+                    }
+                } catch (err) {
+                    console.error('[Fiddle] Error loading prefill data:', err);
+                }
+            }
+
+            // If no prefill, check for auto-saved session draft
+            if (!loaded && !currentSlug) {
+                const draft = sessionStorage.getItem('fiddle_draft');
+                if (draft) {
+                    try {
+                        const parsed = JSON.parse(draft);
+                        if (parsed.html) document.getElementById('htmlInput').value = parsed.html;
+                        if (parsed.css) document.getElementById('cssInput').value = parsed.css;
+                        if (parsed.js) document.getElementById('jsInput').value = parsed.js;
+                    } catch (e) {}
+                }
+            }
+
+            checkSplitHelperVisibility();
+            runCode();
+        }
+
+        // 2. Tab Switching (Does NOT wipe or reload anything)
         function switchTab(type) {
             document.querySelectorAll('.editor-area').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
                 btn.className = 'flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors';
             });
-            document.getElementById(`${type}Input`).classList.remove('hidden');
+
+            const activeEditor = document.getElementById(`${type}Input`);
+            if (activeEditor) {
+                activeEditor.classList.remove('hidden');
+                activeEditor.focus();
+            }
+
             const activeBtn = document.getElementById(`tab-${type}`);
-            activeBtn.className = 'flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors';
+            if (activeBtn) {
+                activeBtn.className = 'flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors';
+            }
         }
 
+        // 3. Clear All Editors
+        function clearAllCode() {
+            if (confirm('Are you sure you want to clear all HTML, CSS, and JavaScript code in the editor?')) {
+                document.getElementById('htmlInput').value = '';
+                document.getElementById('cssInput').value = '';
+                document.getElementById('jsInput').value = '';
+                document.getElementById('preview').srcdoc = '';
+                sessionStorage.removeItem('fiddle_draft');
+                checkSplitHelperVisibility();
+                console.log('[Fiddle] Cleared all code editors.');
+            }
+        }
+
+        // 4. Smart Split helper: extracts inline <style> and <script> from HTML tab
+        function checkSplitHelperVisibility() {
+            const htmlVal = document.getElementById('htmlInput').value;
+            const helperBtn = document.getElementById('splitHelperBtn');
+            const hasInlineTags = /<style[^>]*>[\s\S]*?<\/style>/i.test(htmlVal) || /<script(?![^>]*src=)[^>]*>[\s\S]*?<\/script>/i.test(htmlVal);
+
+            if (hasInlineTags) {
+                helperBtn.classList.remove('hidden');
+            } else {
+                helperBtn.classList.add('hidden');
+            }
+        }
+
+        function smartExtractInlineCode() {
+            let htmlVal = document.getElementById('htmlInput').value;
+            let currentCss = document.getElementById('cssInput').value;
+            let currentJs = document.getElementById('jsInput').value;
+            let extractedCss = '';
+            let extractedJs = '';
+
+            // Extract inline styles
+            htmlVal = htmlVal.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, content) => {
+                extractedCss += content.trim() + '\n\n';
+                return '';
+            });
+
+            // Extract inline scripts
+            htmlVal = htmlVal.replace(/<script([^>]*)>([\s\S]*?)<\/script>/gi, (match, attrs, content) => {
+                if (attrs && attrs.includes('src=')) return match;
+                extractedJs += content.trim() + '\n\n';
+                return '';
+            });
+
+            document.getElementById('htmlInput').value = htmlVal.trim();
+            if (extractedCss.trim()) {
+                document.getElementById('cssInput').value = (currentCss ? currentCss.trim() + '\n\n' : '') + extractedCss.trim();
+            }
+            if (extractedJs.trim()) {
+                document.getElementById('jsInput').value = (currentJs ? currentJs.trim() + '\n\n' : '') + extractedJs.trim();
+            }
+
+            checkSplitHelperVisibility();
+            runCode();
+            alert('Successfully split inline <style> into CSS tab and <script> into JavaScript tab!');
+        }
+
+        // 5. Code Execution with Full Document & Fragment Support
         function runCode() {
             const html = document.getElementById('htmlInput').value;
             const css = document.getElementById('cssInput').value;
             const js = document.getElementById('jsInput').value;
-            const source = `<!DOCTYPE html>
-<html>
+
+            let source = '';
+            const isFullDoc = /^\s*<!DOCTYPE|^\s*<html/i.test(html);
+
+            if (isFullDoc) {
+                source = html;
+                if (css.trim()) {
+                    if (source.includes('</head>')) {
+                        source = source.replace('</head>', `<style>\n${css}\n</style>\n</head>`);
+                    } else {
+                        source = `<style>\n${css}\n</style>\n` + source;
+                    }
+                }
+                if (js.trim()) {
+                    if (source.includes('</body>')) {
+                        source = source.replace('</body>', `<script>try{\n${js}\n}catch(e){console.error(e)}<\/script>\n</body>`);
+                    } else {
+                        source += `\n<script>try{\n${js}\n}catch(e){console.error(e)}<\/script>`;
+                    }
+                }
+            } else {
+                source = `<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>${css}</style>
 </head>
 <body>
@@ -155,10 +313,32 @@ ${html}
 <script>try{${js}}catch(e){console.error(e)}<\/script>
 </body>
 </html>`;
+            }
+
             document.getElementById('preview').srcdoc = source;
         }
 
-        // Split resizer
+        // Auto-save draft on user typing
+        function autoSaveDraft() {
+            if (!currentSlug) {
+                const draft = {
+                    html: document.getElementById('htmlInput').value,
+                    css: document.getElementById('cssInput').value,
+                    js: document.getElementById('jsInput').value
+                };
+                sessionStorage.setItem('fiddle_draft', JSON.stringify(draft));
+            }
+        }
+
+        ['htmlInput', 'cssInput', 'jsInput'].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', () => {
+                checkSplitHelperVisibility();
+                autoSaveDraft();
+            });
+        });
+
+        // Split Panel Resizer
         const resizer = document.getElementById('resizer');
         const leftSide = document.getElementById('editorPanel');
         const overlay = document.getElementById('iframeOverlay');
@@ -187,6 +367,7 @@ ${html}
             document.body.style.cursor = 'default';
         }
 
+        // Modal Controls
         function openSaveModal() {
             document.getElementById('save_modal').showModal();
         }
@@ -195,6 +376,7 @@ ${html}
             document.getElementById('save_modal').close();
         }
 
+        // Save / Publish Application
         async function submitSave() {
             const slug = document.getElementById('saveSlug').value.trim();
             const title = document.getElementById('saveTitle').value.trim();
@@ -220,6 +402,7 @@ ${html}
                 });
                 const result = await res.json();
                 if (result.success) {
+                    sessionStorage.removeItem('fiddle_draft');
                     window.location.href = result.redirect;
                 } else {
                     alert('Error: ' + (result.error || 'Unknown error saving'));
@@ -228,12 +411,12 @@ ${html}
                 console.error('[Fiddle] Save error:', e);
                 alert('Connection error while saving project.');
             } finally {
-                btn.textContent = '<%= prefill ? "Save Updates" : "Publish App" %>';
+                btn.textContent = '<%= prefill && prefill.slug ? "Save Updates" : "Publish App" %>';
                 btn.disabled = false;
             }
         }
 
-        // Tab indentation in textareas
+        // Tab indentation inside textareas
         document.querySelectorAll('textarea').forEach(el => {
             el.addEventListener('keydown', function(e) {
                 if (e.key === 'Tab') {
@@ -243,7 +426,7 @@ ${html}
             });
         });
 
-        window.onload = runCode;
+        window.onload = initEditors;
     </script>
 </body>
 </html>

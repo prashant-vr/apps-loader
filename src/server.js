@@ -105,35 +105,47 @@ const saveStringAsFile = (content, slug) => {
 };
 
 const parseFileContent = (fullContent) => {
-  let html = fullContent;
   let css = '';
   let js = '';
 
   // 1. Extract and Remove Inline CSS (<style>...</style>)
-  html = html.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, content) => {
+  let processed = fullContent.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, content) => {
     css += content.trim() + '\n\n';
     return '';
   });
 
   // 2. Extract and Remove Inline JS (<script>...</script> without src)
-  html = html.replace(/<script([^>]*)>([\s\S]*?)<\/script>/gi, (match, attributes, content) => {
+  processed = processed.replace(/<script([^>]*)>([\s\S]*?)<\/script>/gi, (match, attributes, content) => {
     if (attributes && attributes.includes('src=')) {
-      return match;
+      return match; // Keep external scripts in HTML
     }
     js += content.trim() + '\n\n';
-    return '';
+    return ''; // Remove inline scripts
   });
 
-  // 3. Extract BODY content
-  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  // 3. Extract HTML content while preserving head tags (CDNs, external links, scripts)
+  let html = processed;
+  const bodyMatch = processed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  const headMatch = processed.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+
   if (bodyMatch) {
-    html = bodyMatch[1];
+    let headElements = '';
+    if (headMatch) {
+      const headContent = headMatch[1]
+        .replace(/<meta\s+charset=[^>]*>/gi, '')
+        .replace(/<meta\s+name=["']viewport["'][^>]*>/gi, '')
+        .replace(/<title[^>]*>[\s\S]*?<\/title>/gi, '')
+        .trim();
+      if (headContent) {
+        headElements = headContent + '\n\n';
+      }
+    }
+    html = headElements + bodyMatch[1].trim();
   } else {
-    html = html
+    html = processed
       .replace(/<!DOCTYPE html>/i, '')
       .replace(/<html[^>]*>/i, '')
       .replace(/<\/html>/i, '')
-      .replace(/<head[^>]*>([\s\S]*?)<\/head>/i, '')
       .trim();
   }
 
@@ -231,7 +243,27 @@ app.post('/fiddle/save', requireAuth, requireApproval, (req, res) => {
       return res.status(403).json({ error: 'Slug exists and belongs to another user.' });
     }
 
-    const finalHtml = `<!DOCTYPE html>
+    let finalHtml = '';
+    const isFullDoc = /^\s*<!DOCTYPE|^\s*<html/i.test(html || '');
+
+    if (isFullDoc) {
+      finalHtml = html || '';
+      if (css && css.trim()) {
+        if (finalHtml.includes('</head>')) {
+          finalHtml = finalHtml.replace('</head>', `<style>\n${css.trim()}\n</style>\n</head>`);
+        } else {
+          finalHtml = `<style>\n${css.trim()}\n</style>\n` + finalHtml;
+        }
+      }
+      if (js && js.trim()) {
+        if (finalHtml.includes('</body>')) {
+          finalHtml = finalHtml.replace('</body>', `<script>\n${js.trim()}\n<\/script>\n</body>`);
+        } else {
+          finalHtml += `\n<script>\n${js.trim()}\n<\/script>`;
+        }
+      }
+    } else {
+      finalHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -244,6 +276,7 @@ ${html || ''}
 <script>${js || ''}<\/script>
 </body>
 </html>`;
+    }
 
     saveStringAsFile(finalHtml, safeSlug);
 

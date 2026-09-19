@@ -288,7 +288,7 @@ ${html || ''}
       console.log(`[Fiddle] Created app '${safeSlug}' by user ${req.user.username}`);
     }
 
-    res.json({ success: true, redirect: '/dashboard' });
+    res.json({ success: true, slug: safeSlug, redirect: '/dashboard' });
   } catch (err) {
     console.error('[Fiddle] Save error:', err);
     res.status(500).json({ error: 'Server Error saving fiddle' });

@@ -37,9 +37,11 @@
             <span class="font-bold text-sm tracking-tight hidden sm:inline-block">
                 Apps<span class="text-primary font-extrabold">Fiddle</span>
             </span>
-            <% if (prefill && prefill.slug) { %>
-                <span class="badge badge-neutral badge-sm font-mono text-[11px] text-primary">Editing: <%= prefill.slug %></span>
-            <% } %>
+            <div id="slugBadgeContainer">
+                <% if (prefill && prefill.slug) { %>
+                    <span class="badge badge-neutral badge-sm font-mono text-[11px] text-primary">Editing: <%= prefill.slug %></span>
+                <% } %>
+            </div>
         </div>
 
         <div class="flex items-center gap-2">
@@ -56,9 +58,9 @@
             </button>
 
             <!-- Save / Publish Button -->
-            <button type="button" onclick="openSaveModal()" class="btn btn-primary btn-sm text-white gap-1.5 shadow-sm">
+            <button type="button" onclick="openSaveModal()" id="publishNavBtn" class="btn btn-primary btn-sm text-white gap-1.5 shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                <%= prefill && prefill.slug ? 'Update Deployment' : 'Publish Project' %>
+                <span id="publishNavBtnText"><%= prefill && prefill.slug ? 'Update Deployment' : 'Publish Project' %></span>
             </button>
         </div>
     </nav>
@@ -114,7 +116,7 @@
         <div class="modal-box bg-base-100 text-base-content max-w-sm rounded-2xl border border-base-200 shadow-2xl p-6">
             <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                <%= prefill && prefill.slug ? 'Update Deployment' : 'Publish New App' %>
+                <span id="modalTitleText"><%= prefill && prefill.slug ? 'Update Deployment' : 'Publish New App' %></span>
             </h3>
 
             <div class="space-y-3">
@@ -153,15 +155,36 @@
         </form>
     </dialog>
 
+    <!-- Toast Notification (Feedback without reload) -->
+    <div id="saveToast" class="toast toast-top toast-end z-50 transition-all duration-300 hidden">
+        <div class="alert alert-success text-white shadow-xl flex items-center gap-2.5 text-xs font-semibold py-3 px-5 rounded-2xl">
+            <svg class="w-4 h-4 stroke-current shrink-0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span id="toastMessage">Deployment saved successfully!</span>
+        </div>
+    </div>
+
     <!-- Prefill JSON Data safely encoded to avoid breaking textarea or script HTML tags -->
     <script id="prefill-json" type="application/json">
         <%- JSON.stringify(prefill || null).replace(/</g, '\\u003c') %>
     </script>
 
     <script>
-        const currentSlug = '<%= prefill && prefill.slug ? prefill.slug : "" %>';
+        let currentSlug = '<%= prefill && prefill.slug ? prefill.slug : "" %>';
 
-        // 1. Safe Initialization of Textareas
+        // 1. Toast Notification Helper
+        function showToast(msg) {
+            const toast = document.getElementById('saveToast');
+            const toastMsg = document.getElementById('toastMessage');
+            if (toast && toastMsg) {
+                toastMsg.textContent = msg;
+                toast.classList.remove('hidden');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 3500);
+            }
+        }
+
+        // 2. Safe Initialization of Textareas
         function initEditors() {
             const prefillEl = document.getElementById('prefill-json');
             let loaded = false;
@@ -197,7 +220,7 @@
             runCode();
         }
 
-        // 2. Tab Switching (Does NOT wipe or reload anything)
+        // 3. Tab Switching (Does NOT wipe or reload anything)
         function switchTab(type) {
             document.querySelectorAll('.editor-area').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
@@ -216,7 +239,7 @@
             }
         }
 
-        // 3. Clear All Editors
+        // 4. Clear All Editors
         function clearAllCode() {
             if (confirm('Are you sure you want to clear all HTML, CSS, and JavaScript code in the editor?')) {
                 document.getElementById('htmlInput').value = '';
@@ -229,7 +252,7 @@
             }
         }
 
-        // 4. Smart Split helper: extracts inline <style> and <script> from HTML tab
+        // 5. Smart Split helper: extracts inline <style> and <script> from HTML tab
         function checkSplitHelperVisibility() {
             const htmlVal = document.getElementById('htmlInput').value;
             const helperBtn = document.getElementById('splitHelperBtn');
@@ -272,10 +295,10 @@
 
             checkSplitHelperVisibility();
             runCode();
-            alert('Successfully split inline <style> into CSS tab and <script> into JavaScript tab!');
+            showToast('Split inline <style> into CSS tab and <script> into JS tab!');
         }
 
-        // 5. Code Execution with Full Document & Fragment Support
+        // 6. Code Execution with Full Document & Fragment Support
         function runCode() {
             const html = document.getElementById('htmlInput').value;
             const css = document.getElementById('cssInput').value;
@@ -376,7 +399,7 @@ ${html}
             document.getElementById('save_modal').close();
         }
 
-        // Save / Publish Application
+        // 7. Save / Publish Application Without Reloading
         async function submitSave() {
             const slug = document.getElementById('saveSlug').value.trim();
             const title = document.getElementById('saveTitle').value.trim();
@@ -386,7 +409,7 @@ ${html}
                 html: document.getElementById('htmlInput').value,
                 css: document.getElementById('cssInput').value,
                 js: document.getElementById('jsInput').value,
-                slug,
+                slug: slug || currentSlug,
                 title
             };
 
@@ -403,7 +426,40 @@ ${html}
                 const result = await res.json();
                 if (result.success) {
                     sessionStorage.removeItem('fiddle_draft');
-                    window.location.href = result.redirect;
+                    closeSaveModal();
+
+                    const savedSlug = result.slug || slug || currentSlug;
+                    currentSlug = savedSlug;
+
+                    // Update URL without any page reload
+                    history.replaceState(null, '', '/fiddle/' + savedSlug);
+
+                    // Lock slug input for future saves
+                    const slugInput = document.getElementById('saveSlug');
+                    if (slugInput) {
+                        slugInput.value = savedSlug;
+                        slugInput.readOnly = true;
+                        slugInput.classList.add('bg-base-200', 'cursor-not-allowed');
+                    }
+
+                    // Update UI labels in navbar & modal
+                    const navBtnText = document.getElementById('publishNavBtnText');
+                    if (navBtnText) navBtnText.textContent = 'Update Deployment';
+                    document.getElementById('saveSubmitBtn').textContent = 'Save Updates';
+                    const modalTitle = document.getElementById('modalTitleText');
+                    if (modalTitle) modalTitle.textContent = 'Update Deployment';
+
+                    // Update header slug badge
+                    const badgeContainer = document.getElementById('slugBadgeContainer');
+                    if (badgeContainer) {
+                        badgeContainer.innerHTML = `<span class="badge badge-neutral badge-sm font-mono text-[11px] text-primary">Editing: ${savedSlug}</span>`;
+                    }
+
+                    // Refresh preview iframe with latest saved code
+                    runCode();
+
+                    // Show success feedback
+                    showToast('Deployment updated! Changes saved to /sites/' + savedSlug + '/');
                 } else {
                     alert('Error: ' + (result.error || 'Unknown error saving'));
                 }
@@ -411,7 +467,7 @@ ${html}
                 console.error('[Fiddle] Save error:', e);
                 alert('Connection error while saving project.');
             } finally {
-                btn.textContent = '<%= prefill && prefill.slug ? "Save Updates" : "Publish App" %>';
+                btn.textContent = currentSlug ? 'Save Updates' : 'Publish App';
                 btn.disabled = false;
             }
         }

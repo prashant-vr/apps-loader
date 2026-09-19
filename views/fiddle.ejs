@@ -45,6 +45,12 @@
         </div>
 
         <div class="flex items-center gap-2">
+            <!-- Copy All Standalone Code Button -->
+            <button type="button" onclick="copyCombinedCode()" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10 gap-1.5" title="Copy complete standalone HTML (HTML + CSS + JS) to clipboard">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                <span class="hidden sm:inline">Copy All</span>
+            </button>
+
             <!-- Clear All Button -->
             <button type="button" onclick="clearAllCode()" class="btn btn-ghost btn-sm text-error/80 hover:text-error hover:bg-error/10 gap-1.5" title="Clear all editor contents">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -72,19 +78,22 @@
             <!-- Code Tabs Header with Utilities -->
             <div class="flex items-center bg-neutral-900 border-b border-neutral-800 text-xs font-semibold px-1">
                 <div class="flex flex-1">
-                    <button type="button" onclick="switchTab('html')" id="tab-html" class="flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors">
+                    <button type="button" onclick="switchTab('html')" id="tab-html" class="flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors text-center">
                         HTML
                     </button>
-                    <button type="button" onclick="switchTab('css')" id="tab-css" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors">
+                    <button type="button" onclick="switchTab('css')" id="tab-css" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors text-center">
                         CSS
                     </button>
-                    <button type="button" onclick="switchTab('js')" id="tab-js" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors">
+                    <button type="button" onclick="switchTab('js')" id="tab-js" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors text-center">
                         JavaScript
+                    </button>
+                    <button type="button" onclick="switchTab('combined')" id="tab-combined" class="flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors text-center font-bold text-secondary">
+                        Combined
                     </button>
                 </div>
 
                 <!-- Split Helper Button -->
-                <button type="button" onclick="smartExtractInlineCode()" id="splitHelperBtn" class="btn btn-ghost btn-xs text-secondary hover:text-secondary-focus gap-1 hidden px-2 font-normal" title="Extract <style> and <script> from HTML into CSS and JS tabs">
+                <button type="button" onclick="smartExtractInlineCode()" id="splitHelperBtn" class="btn btn-ghost btn-xs text-secondary hover:text-secondary-focus gap-1 hidden px-2 font-normal shrink-0" title="Extract <style> and <script> from HTML into CSS and JS tabs">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     Split Tags
                 </button>
@@ -92,11 +101,13 @@
 
             <!-- Textareas (Populated safely via JavaScript DOM API to prevent escaping bugs) -->
             <div class="relative flex-1 bg-neutral-950 overflow-hidden">
-                <textarea id="htmlInput" class="editor-area w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="<!-- Write your HTML structure or paste complete document here -->"></textarea>
+                <textarea id="htmlInput" class="editor-area w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="<!-- Write your HTML structure or paste body content here -->"></textarea>
 
                 <textarea id="cssInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="/* Write custom CSS styles here */"></textarea>
 
                 <textarea id="jsInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="// Write JavaScript code here"></textarea>
+
+                <textarea id="combinedInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="<!-- Complete All-in-One Standalone HTML (HTML + CSS + JS) -->"></textarea>
             </div>
         </div>
 
@@ -170,6 +181,8 @@
 
     <script>
         let currentSlug = '<%= prefill && prefill.slug ? prefill.slug : "" %>';
+        let currentTab = 'html';
+        let combinedIsDirty = false;
 
         // 1. Toast Notification Helper
         function showToast(msg) {
@@ -220,11 +233,129 @@
             runCode();
         }
 
-        // 3. Tab Switching (Does NOT wipe or reload anything)
+        // 3. Helper: Indent lines of text
+        function indentCode(str, numSpaces) {
+            if (!str) return '';
+            const pad = ' '.repeat(numSpaces);
+            return str.split('\n').map(line => line.length ? pad + line : line).join('\n');
+        }
+
+        // 4. Build Complete Standalone HTML from HTML, CSS, JS inputs
+        function buildCombinedCode() {
+            const html = document.getElementById('htmlInput').value.trim();
+            const css = document.getElementById('cssInput').value.trim();
+            const js = document.getElementById('jsInput').value.trim();
+            const title = (document.getElementById('saveTitle')?.value || '<%= prefill && prefill.title ? prefill.title : "Standalone Web Application" %>').trim();
+
+            const isFullDoc = /^\s*<!DOCTYPE|^\s*<html/i.test(html);
+
+            if (isFullDoc) {
+                let combined = html;
+                if (css) {
+                    if (combined.includes('</head>')) {
+                        combined = combined.replace('</head>', `  <style>\n${indentCode(css, 4)}\n  </style>\n</head>`);
+                    } else {
+                        combined = `<style>\n${css}\n</style>\n` + combined;
+                    }
+                }
+                if (js) {
+                    if (combined.includes('</body>')) {
+                        combined = combined.replace('</body>', `  <script>\n${indentCode(js, 4)}\n  <\/script>\n</body>`);
+                    } else {
+                        combined += `\n<script>\n${js}\n<\/script>`;
+                    }
+                }
+                return combined;
+            } else {
+                return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || 'Standalone Web Application'}</title>
+  <style>
+${css ? indentCode(css, 4) : '    /* Custom CSS styles */'}
+  </style>
+</head>
+<body>
+${html ? indentCode(html, 2) : '  <!-- HTML Content -->'}
+
+  <script>
+${js ? indentCode(js, 4) : '    // JavaScript code'}
+  <\/script>
+</body>
+</html>`;
+            }
+        }
+
+        // 5. Parse Combined Code into separate HTML, CSS, and JS tabs
+        function syncCombinedToTabs() {
+            const combinedVal = document.getElementById('combinedInput').value;
+            if (!combinedVal.trim()) return;
+
+            let css = '';
+            let js = '';
+
+            // Extract inline styles
+            let processed = combinedVal.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, content) => {
+                css += content.trim() + '\n\n';
+                return '';
+            });
+
+            // Extract inline scripts (keeping external script tags with src)
+            processed = processed.replace(/<script([^>]*)>([\s\S]*?)<\/script>/gi, (match, attrs, content) => {
+                if (attrs && attrs.includes('src=')) return match;
+                js += content.trim() + '\n\n';
+                return '';
+            });
+
+            // Extract body content and external head tags
+            let html = processed;
+            const bodyMatch = processed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+            const headMatch = processed.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+
+            if (bodyMatch) {
+                let headElements = '';
+                if (headMatch) {
+                    const headContent = headMatch[1]
+                        .replace(/<meta\s+charset=[^>]*>/gi, '')
+                        .replace(/<meta\s+name=["']viewport["'][^>]*>/gi, '')
+                        .replace(/<title[^>]*>[\s\S]*?<\/title>/gi, '')
+                        .trim();
+                    if (headContent) headElements = headContent + '\n\n';
+                }
+                html = headElements + bodyMatch[1].trim();
+            } else {
+                html = processed
+                    .replace(/<!DOCTYPE html>/i, '')
+                    .replace(/<html[^>]*>/i, '')
+                    .replace(/<\/html>/i, '')
+                    .trim();
+            }
+
+            document.getElementById('htmlInput').value = html.trim();
+            document.getElementById('cssInput').value = css.trim();
+            document.getElementById('jsInput').value = js.trim();
+            combinedIsDirty = false;
+        }
+
+        // 6. Tab Switching (Handles Combined Sync Seamlessly)
         function switchTab(type) {
+            // When leaving Combined tab and user modified it, sync back to separate tabs
+            if (currentTab === 'combined' && type !== 'combined' && combinedIsDirty) {
+                syncCombinedToTabs();
+            }
+
+            currentTab = type;
+
+            // When entering Combined tab, refresh it if not dirty
+            if (type === 'combined' && !combinedIsDirty) {
+                document.getElementById('combinedInput').value = buildCombinedCode();
+            }
+
             document.querySelectorAll('.editor-area').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
-                btn.className = 'flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors';
+                btn.className = 'flex-1 py-2.5 border-b-2 border-transparent text-neutral-400 hover:text-white transition-colors text-center';
             });
 
             const activeEditor = document.getElementById(`${type}Input`);
@@ -235,30 +366,64 @@
 
             const activeBtn = document.getElementById(`tab-${type}`);
             if (activeBtn) {
-                activeBtn.className = 'flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors';
+                activeBtn.className = 'flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors text-center font-semibold';
+            }
+
+            checkSplitHelperVisibility();
+            runCode();
+        }
+
+        // 7. Copy All Working Standalone HTML
+        function copyCombinedCode() {
+            const code = currentTab === 'combined' ? document.getElementById('combinedInput').value : buildCombinedCode();
+            if (!code.trim()) {
+                showToast('No code to copy!');
+                return;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('Copied standalone working HTML! Ready to paste anywhere.');
+                }).catch(() => fallbackCopy(code));
+            } else {
+                fallbackCopy(code);
             }
         }
 
-        // 4. Clear All Editors
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('Copied standalone working HTML! Ready to paste anywhere.');
+        }
+
+        // 8. Clear All Editors
         function clearAllCode() {
             if (confirm('Are you sure you want to clear all HTML, CSS, and JavaScript code in the editor?')) {
                 document.getElementById('htmlInput').value = '';
                 document.getElementById('cssInput').value = '';
                 document.getElementById('jsInput').value = '';
+                document.getElementById('combinedInput').value = '';
                 document.getElementById('preview').srcdoc = '';
                 sessionStorage.removeItem('fiddle_draft');
+                combinedIsDirty = false;
                 checkSplitHelperVisibility();
-                console.log('[Fiddle] Cleared all code editors.');
+                showToast('All code cleared.');
             }
         }
 
-        // 5. Smart Split helper: extracts inline <style> and <script> from HTML tab
+        // 9. Smart Split helper: extracts inline <style> and <script> from HTML tab
         function checkSplitHelperVisibility() {
             const htmlVal = document.getElementById('htmlInput').value;
             const helperBtn = document.getElementById('splitHelperBtn');
             const hasInlineTags = /<style[^>]*>[\s\S]*?<\/style>/i.test(htmlVal) || /<script(?![^>]*src=)[^>]*>[\s\S]*?<\/script>/i.test(htmlVal);
 
-            if (hasInlineTags) {
+            if (hasInlineTags && currentTab === 'html') {
                 helperBtn.classList.remove('hidden');
             } else {
                 helperBtn.classList.add('hidden');
@@ -272,13 +437,11 @@
             let extractedCss = '';
             let extractedJs = '';
 
-            // Extract inline styles
             htmlVal = htmlVal.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, content) => {
                 extractedCss += content.trim() + '\n\n';
                 return '';
             });
 
-            // Extract inline scripts
             htmlVal = htmlVal.replace(/<script([^>]*)>([\s\S]*?)<\/script>/gi, (match, attrs, content) => {
                 if (attrs && attrs.includes('src=')) return match;
                 extractedJs += content.trim() + '\n\n';
@@ -298,46 +461,14 @@
             showToast('Split inline <style> into CSS tab and <script> into JS tab!');
         }
 
-        // 6. Code Execution with Full Document & Fragment Support
+        // 10. Code Execution in Preview Iframe
         function runCode() {
-            const html = document.getElementById('htmlInput').value;
-            const css = document.getElementById('cssInput').value;
-            const js = document.getElementById('jsInput').value;
-
             let source = '';
-            const isFullDoc = /^\s*<!DOCTYPE|^\s*<html/i.test(html);
-
-            if (isFullDoc) {
-                source = html;
-                if (css.trim()) {
-                    if (source.includes('</head>')) {
-                        source = source.replace('</head>', `<style>\n${css}\n</style>\n</head>`);
-                    } else {
-                        source = `<style>\n${css}\n</style>\n` + source;
-                    }
-                }
-                if (js.trim()) {
-                    if (source.includes('</body>')) {
-                        source = source.replace('</body>', `<script>try{\n${js}\n}catch(e){console.error(e)}<\/script>\n</body>`);
-                    } else {
-                        source += `\n<script>try{\n${js}\n}catch(e){console.error(e)}<\/script>`;
-                    }
-                }
+            if (currentTab === 'combined') {
+                source = document.getElementById('combinedInput').value;
             } else {
-                source = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>${css}</style>
-</head>
-<body>
-${html}
-<script>try{${js}}catch(e){console.error(e)}<\/script>
-</body>
-</html>`;
+                source = buildCombinedCode();
             }
-
             document.getElementById('preview').srcdoc = source;
         }
 
@@ -356,9 +487,16 @@ ${html}
         ['htmlInput', 'cssInput', 'jsInput'].forEach(id => {
             const el = document.getElementById(id);
             el.addEventListener('input', () => {
+                combinedIsDirty = false;
                 checkSplitHelperVisibility();
                 autoSaveDraft();
             });
+        });
+
+        document.getElementById('combinedInput').addEventListener('input', () => {
+            combinedIsDirty = true;
+            runCode();
+            autoSaveDraft();
         });
 
         // Split Panel Resizer
@@ -399,8 +537,13 @@ ${html}
             document.getElementById('save_modal').close();
         }
 
-        // 7. Save / Publish Application Without Reloading
+        // 11. Save / Publish Application Without Reloading
         async function submitSave() {
+            // If in combined tab and dirty, sync to tabs first
+            if (currentTab === 'combined' && combinedIsDirty) {
+                syncCombinedToTabs();
+            }
+
             const slug = document.getElementById('saveSlug').value.trim();
             const title = document.getElementById('saveTitle').value.trim();
             const btn = document.getElementById('saveSubmitBtn');

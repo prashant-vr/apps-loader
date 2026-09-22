@@ -21,30 +21,44 @@
         .resizer:hover, .resizer.active {
             background-color: #3b82f6;
         }
+        /* Lock editor fonts and line-heights identically */
+        .code-font {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            line-height: 1.6rem;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 
 <body class="bg-neutral-950 h-screen flex flex-col text-neutral-100 overflow-hidden font-sans antialiased">
 
     <!-- Top Navigation Bar -->
-    <nav class="h-14 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-4 shrink-0">
-        <div class="flex items-center gap-3">
+    <nav class="h-14 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-3 sm:px-4 shrink-0">
+        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <a href="/dashboard" class="btn btn-ghost btn-sm text-neutral-400 hover:text-white gap-1 px-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                Dashboard
+                <span class="hidden md:inline">Dashboard</span>
             </a>
             <div class="h-4 w-px bg-neutral-700 hidden sm:block"></div>
             <span class="font-bold text-sm tracking-tight hidden sm:inline-block">
                 Apps<span class="text-primary font-extrabold">Fiddle</span>
             </span>
+
+            <!-- Slug Badge -->
             <div id="slugBadgeContainer">
                 <% if (prefill && prefill.slug) { %>
                     <span class="badge badge-neutral badge-sm font-mono text-[11px] text-primary">Editing: <%= prefill.slug %></span>
                 <% } %>
             </div>
+
+            <!-- Public Link to Live App (Requested: visible on save or if already saved) -->
+            <a id="publicSiteLink" href="<%= prefill && prefill.slug ? '/sites/' + prefill.slug + '/' : '#' %>" target="_blank" class="btn btn-outline btn-info btn-xs sm:btn-sm gap-1.5 shadow-sm font-semibold <%= prefill && prefill.slug ? '' : 'hidden' %>" title="Open live public deployment in a new tab">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span>Open Site ↗</span>
+            </a>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2">
             <!-- Copy All Standalone Code Button -->
             <button type="button" onclick="copyCombinedCode()" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10 gap-1.5" title="Copy complete standalone HTML (HTML + CSS + JS) to clipboard">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
@@ -60,7 +74,7 @@
             <!-- Run Code Button -->
             <button type="button" onclick="runCode()" class="btn btn-success btn-sm text-white gap-1.5 shadow-sm">
                 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                Run Preview
+                <span>Run</span>
             </button>
 
             <!-- Save / Publish Button -->
@@ -74,9 +88,9 @@
     <!-- Split Workspace -->
     <div class="flex-1 flex overflow-hidden" id="workspace">
         <!-- Editor Panel -->
-        <div id="editorPanel" class="flex flex-col min-w-[240px]" style="width: 45%;">
-            <!-- Code Tabs Header with Utilities -->
-            <div class="flex items-center bg-neutral-900 border-b border-neutral-800 text-xs font-semibold px-1">
+        <div id="editorPanel" class="flex flex-col min-w-[240px]" style="width: 48%;">
+            <!-- Code Tabs & Editor Utilities Toolbar -->
+            <div class="flex items-center bg-neutral-900 border-b border-neutral-800 text-xs font-semibold px-1 shrink-0">
                 <div class="flex flex-1">
                     <button type="button" onclick="switchTab('html')" id="tab-html" class="flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors text-center">
                         HTML
@@ -92,33 +106,123 @@
                     </button>
                 </div>
 
-                <!-- Split Helper Button -->
-                <button type="button" onclick="smartExtractInlineCode()" id="splitHelperBtn" class="btn btn-ghost btn-xs text-secondary hover:text-secondary-focus gap-1 hidden px-2 font-normal shrink-0" title="Extract <style> and <script> from HTML into CSS and JS tabs">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    Split Tags
-                </button>
+                <!-- Editor Action Buttons: Toggle Comment, Format, Split Tags -->
+                <div class="flex items-center gap-1 pl-1">
+                    <!-- Toggle Comment Button -->
+                    <button type="button" onclick="toggleComment()" class="btn btn-ghost btn-xs text-neutral-400 hover:text-white gap-1 px-2 font-normal" title="Toggle Comment (Ctrl + /)">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        <span class="hidden md:inline">Comment</span>
+                    </button>
+
+                    <!-- Format / Tidy Indent Button -->
+                    <button type="button" onclick="formatActiveCode()" class="btn btn-ghost btn-xs text-neutral-400 hover:text-white gap-1 px-2 font-normal" title="Format / Tidy Indentation">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                        <span class="hidden md:inline">Format</span>
+                    </button>
+
+                    <!-- Split Helper Button -->
+                    <button type="button" onclick="smartExtractInlineCode()" id="splitHelperBtn" class="btn btn-ghost btn-xs text-secondary hover:text-secondary-focus gap-1 hidden px-2 font-normal shrink-0" title="Extract <style> and <script> from HTML into CSS and JS tabs">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        Split Tags
+                    </button>
+                </div>
             </div>
 
-            <!-- Textareas (Populated safely via JavaScript DOM API to prevent escaping bugs) -->
-            <div class="relative flex-1 bg-neutral-950 overflow-hidden">
-                <textarea id="htmlInput" class="editor-area w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="<!-- Write your HTML structure or paste body content here -->"></textarea>
+            <!-- Editor Work Area with Synchronized Line Numbers Gutter -->
+            <div class="relative flex-1 bg-neutral-950 overflow-hidden flex flex-row">
+                <!-- Line Numbers Gutter -->
+                <div id="lineNumbers" class="bg-neutral-900/90 text-neutral-500 code-font py-4 px-2 select-none text-right border-r border-neutral-800 shrink-0 overflow-hidden font-medium" style="min-width: 3rem; white-space: pre;">1</div>
 
-                <textarea id="cssInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="/* Write custom CSS styles here */"></textarea>
+                <!-- Textareas Container -->
+                <div class="relative flex-1 h-full overflow-hidden">
+                    <textarea id="htmlInput" class="editor-area w-full h-full bg-neutral-950 text-neutral-100 p-4 code-font resize-none focus:outline-none" spellcheck="false" wrap="off" placeholder="<!-- Write your HTML structure or paste body content here -->"></textarea>
 
-                <textarea id="jsInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="// Write JavaScript code here"></textarea>
+                    <textarea id="cssInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 code-font resize-none focus:outline-none" spellcheck="false" wrap="off" placeholder="/* Write custom CSS styles here */"></textarea>
 
-                <textarea id="combinedInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 font-mono text-xs sm:text-sm resize-none focus:outline-none" spellcheck="false" placeholder="<!-- Complete All-in-One Standalone HTML (HTML + CSS + JS) -->"></textarea>
+                    <textarea id="jsInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 code-font resize-none focus:outline-none" spellcheck="false" wrap="off" placeholder="// Write JavaScript code here"></textarea>
+
+                    <textarea id="combinedInput" class="editor-area hidden w-full h-full bg-neutral-950 text-neutral-100 p-4 code-font resize-none focus:outline-none" spellcheck="false" wrap="off" placeholder="<!-- Complete All-in-One Standalone HTML (HTML + CSS + JS) -->"></textarea>
+                </div>
+            </div>
+
+            <!-- Status Bar below editor -->
+            <div class="h-6 bg-neutral-900 border-t border-neutral-800 flex items-center justify-between px-3 text-[11px] text-neutral-400 font-mono shrink-0 select-none">
+                <div class="flex items-center gap-3">
+                    <span id="cursorPos">Ln 1, Col 1</span>
+                    <span class="text-neutral-700">|</span>
+                    <span id="lineCount">1 lines</span>
+                    <span class="text-neutral-700">|</span>
+                    <span id="charCount">0 chars</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="tabModeLabel" class="uppercase text-primary font-bold text-[10px]">HTML</span>
+                    <span class="text-neutral-700">|</span>
+                    <span>UTF-8</span>
+                </div>
             </div>
         </div>
 
         <!-- Col Resizer -->
         <div id="resizer" class="resizer shrink-0"></div>
 
-        <!-- Live Preview Iframe Panel -->
-        <div class="flex-1 bg-white flex flex-col min-w-[240px] relative">
-            <!-- Sandbox WITHOUT allow-same-origin to prevent preview scripts from redirecting or reloading the parent page -->
-            <iframe id="preview" class="w-full h-full border-none bg-white" sandbox="allow-scripts allow-modals"></iframe>
-            <div id="iframeOverlay" class="absolute inset-0 hidden z-20"></div>
+        <!-- Live Preview Panel with Responsive Switcher & Console Drawer -->
+        <div class="flex-1 bg-neutral-900 flex flex-col min-w-[240px] relative overflow-hidden">
+            <!-- Preview Controls Bar -->
+            <div class="h-9 bg-neutral-800/90 border-b border-neutral-700/80 px-3 flex items-center justify-between shrink-0 text-xs">
+                <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-neutral-300 text-[11px] uppercase tracking-wider">Preview</span>
+                    <!-- Viewport switcher: Desktop / Tablet / Mobile -->
+                    <div class="join ml-2 bg-neutral-900 p-0.5 rounded-lg border border-neutral-700">
+                        <button type="button" onclick="setPreviewViewport('100%')" id="vp-desktop" class="btn btn-ghost btn-xs text-primary join-item px-2 py-0 h-6" title="Desktop view (100%)">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        </button>
+                        <button type="button" onclick="setPreviewViewport('768px')" id="vp-tablet" class="btn btn-ghost btn-xs text-neutral-400 hover:text-white join-item px-2 py-0 h-6" title="Tablet view (768px)">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        </button>
+                        <button type="button" onclick="setPreviewViewport('375px')" id="vp-mobile" class="btn btn-ghost btn-xs text-neutral-400 hover:text-white join-item px-2 py-0 h-6" title="Mobile view (375px)">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- Toggle Console Drawer Button -->
+                    <button type="button" onclick="toggleConsoleDrawer()" id="consoleToggleBtn" class="btn btn-ghost btn-xs text-neutral-300 hover:text-white gap-1 font-mono text-[11px]" title="Toggle Interactive Console">
+                        <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Console <span id="consoleBadge" class="badge badge-xs badge-neutral">0</span>
+                    </button>
+
+                    <button type="button" onclick="runCode()" class="btn btn-ghost btn-xs text-neutral-300 hover:text-white" title="Reload preview">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Iframe Container with Responsive Center Wrapper -->
+            <div class="flex-1 bg-neutral-950 flex items-center justify-center overflow-hidden relative">
+                <div id="previewWrapper" class="w-full h-full bg-white transition-all duration-300 shadow-2xl relative">
+                    <!-- Sandbox WITHOUT allow-same-origin to prevent preview scripts from redirecting or reloading the parent page -->
+                    <iframe id="preview" class="w-full h-full border-none bg-white" sandbox="allow-scripts allow-modals"></iframe>
+                    <div id="iframeOverlay" class="absolute inset-0 hidden z-20"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Console Output Drawer -->
+            <div id="consoleDrawer" class="h-40 bg-neutral-950 border-t border-neutral-800 flex flex-col shrink-0 hidden transition-all">
+                <div class="h-7 bg-neutral-900 border-b border-neutral-800 px-3 flex items-center justify-between text-[11px] font-mono text-neutral-400">
+                    <span class="font-bold flex items-center gap-1.5 text-neutral-300">
+                        <svg class="w-3 h-3 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3"/></svg>
+                        Console Output
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="clearConsoleLog()" class="hover:text-error transition-colors" title="Clear console">Clear</button>
+                        <button type="button" onclick="toggleConsoleDrawer()" class="hover:text-white transition-colors" title="Close console">&times;</button>
+                    </div>
+                </div>
+                <div id="consoleLogs" class="flex-1 p-2 font-mono text-xs overflow-y-auto space-y-1 select-text">
+                    <div class="text-neutral-600 text-[11px] italic">Console is ready. Messages from console.log() will appear here.</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -183,6 +287,7 @@
         let currentSlug = '<%= prefill && prefill.slug ? prefill.slug : "" %>';
         let currentTab = 'html';
         let combinedIsDirty = false;
+        let consoleCount = 0;
 
         // 1. Toast Notification Helper
         function showToast(msg) {
@@ -197,7 +302,12 @@
             }
         }
 
-        // 2. Safe Initialization of Textareas
+        // 2. Active Textarea Selector
+        function getActiveTextarea() {
+            return document.getElementById(`${currentTab}Input`);
+        }
+
+        // 3. Safe Initialization of Textareas
         function initEditors() {
             const prefillEl = document.getElementById('prefill-json');
             let loaded = false;
@@ -229,18 +339,49 @@
                 }
             }
 
+            updateLineNumbers();
             checkSplitHelperVisibility();
             runCode();
         }
 
-        // 3. Helper: Indent lines of text
+        // 4. Synchronized Line Numbers & Status Bar
+        function updateLineNumbers() {
+            const ta = getActiveTextarea();
+            if (!ta) return;
+            const count = (ta.value.match(/\n/g) || []).length + 1;
+            let nums = '';
+            for (let i = 1; i <= count; i++) {
+                nums += i + '\n';
+            }
+            const gutter = document.getElementById('lineNumbers');
+            if (gutter) {
+                gutter.textContent = nums;
+                gutter.scrollTop = ta.scrollTop;
+            }
+            updateStatusInfo(ta, count);
+        }
+
+        function updateStatusInfo(ta, lineCount) {
+            const count = lineCount || ((ta.value.match(/\n/g) || []).length + 1);
+            document.getElementById('lineCount').textContent = count + (count === 1 ? ' line' : ' lines');
+            document.getElementById('charCount').textContent = ta.value.length + ' chars';
+
+            const start = ta.selectionStart;
+            const textBefore = ta.value.substring(0, start);
+            const lineNum = (textBefore.match(/\n/g) || []).length + 1;
+            const colNum = start - textBefore.lastIndexOf('\n');
+            document.getElementById('cursorPos').textContent = `Ln ${lineNum}, Col ${colNum}`;
+            document.getElementById('tabModeLabel').textContent = currentTab.toUpperCase();
+        }
+
+        // 5. Helper: Indent lines of text
         function indentCode(str, numSpaces) {
             if (!str) return '';
             const pad = ' '.repeat(numSpaces);
             return str.split('\n').map(line => line.length ? pad + line : line).join('\n');
         }
 
-        // 4. Build Complete Standalone HTML from HTML, CSS, JS inputs
+        // 6. Build Complete Standalone HTML from HTML, CSS, JS inputs
         function buildCombinedCode() {
             const html = document.getElementById('htmlInput').value.trim();
             const css = document.getElementById('cssInput').value.trim();
@@ -288,7 +429,7 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
             }
         }
 
-        // 5. Parse Combined Code into separate HTML, CSS, and JS tabs
+        // 7. Parse Combined Code into separate HTML, CSS, and JS tabs
         function syncCombinedToTabs() {
             const combinedVal = document.getElementById('combinedInput').value;
             if (!combinedVal.trim()) return;
@@ -296,20 +437,17 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
             let css = '';
             let js = '';
 
-            // Extract inline styles
             let processed = combinedVal.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, content) => {
                 css += content.trim() + '\n\n';
                 return '';
             });
 
-            // Extract inline scripts (keeping external script tags with src)
             processed = processed.replace(/<script([^>]*)>([\s\S]*?)<\/script>/gi, (match, attrs, content) => {
                 if (attrs && attrs.includes('src=')) return match;
                 js += content.trim() + '\n\n';
                 return '';
             });
 
-            // Extract body content and external head tags
             let html = processed;
             const bodyMatch = processed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
             const headMatch = processed.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
@@ -339,16 +477,14 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
             combinedIsDirty = false;
         }
 
-        // 6. Tab Switching (Handles Combined Sync Seamlessly)
+        // 8. Tab Switching
         function switchTab(type) {
-            // When leaving Combined tab and user modified it, sync back to separate tabs
             if (currentTab === 'combined' && type !== 'combined' && combinedIsDirty) {
                 syncCombinedToTabs();
             }
 
             currentTab = type;
 
-            // When entering Combined tab, refresh it if not dirty
             if (type === 'combined' && !combinedIsDirty) {
                 document.getElementById('combinedInput').value = buildCombinedCode();
             }
@@ -369,11 +505,110 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
                 activeBtn.className = 'flex-1 py-2.5 border-b-2 border-primary text-primary bg-neutral-800/60 transition-colors text-center font-semibold';
             }
 
+            updateLineNumbers();
             checkSplitHelperVisibility();
             runCode();
         }
 
-        // 7. Copy All Working Standalone HTML
+        // 9. Code Comment Toggle Feature (HTML, CSS, JS, Combined)
+        function toggleComment() {
+            const ta = getActiveTextarea();
+            if (!ta) return;
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const val = ta.value;
+
+            let openToken = '// ';
+            let closeToken = '';
+            let isBlock = false;
+
+            if (currentTab === 'html') {
+                openToken = '<!-- '; closeToken = ' -->'; isBlock = true;
+            } else if (currentTab === 'css') {
+                openToken = '/* '; closeToken = ' */'; isBlock = true;
+            } else if (currentTab === 'combined') {
+                const before = val.substring(0, start);
+                const lastStyleOpen = before.lastIndexOf('<style');
+                const lastStyleClose = before.lastIndexOf('</style>');
+                const lastScriptOpen = before.lastIndexOf('<script');
+                const lastScriptClose = before.lastIndexOf('</script>');
+
+                if (lastStyleOpen > lastStyleClose) {
+                    openToken = '/* '; closeToken = ' */'; isBlock = true;
+                } else if (lastScriptOpen > lastScriptClose) {
+                    openToken = '// '; closeToken = ''; isBlock = false;
+                } else {
+                    openToken = '<!-- '; closeToken = ' -->'; isBlock = true;
+                }
+            }
+
+            if (isBlock) {
+                const selected = val.substring(start, end);
+                if (selected.startsWith(openToken) && selected.endsWith(closeToken)) {
+                    const unwrapped = selected.substring(openToken.length, selected.length - closeToken.length);
+                    ta.setRangeText(unwrapped, start, end, 'select');
+                } else {
+                    ta.setRangeText(openToken + selected + closeToken, start, end, 'select');
+                }
+            } else {
+                const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+                let lineEnd = val.indexOf('\n', end);
+                if (lineEnd === -1) lineEnd = val.length;
+
+                const linesText = val.substring(lineStart, lineEnd);
+                const linesArr = linesText.split('\n');
+                const allCommented = linesArr.every(l => l.trim().startsWith('//'));
+
+                let newLines;
+                if (allCommented) {
+                    newLines = linesArr.map(l => l.replace(/^\s*\/\/\s?/, l.match(/^\s*/)[0]));
+                } else {
+                    newLines = linesArr.map(l => l.length ? '// ' + l : l);
+                }
+                ta.setRangeText(newLines.join('\n'), lineStart, lineEnd, 'select');
+            }
+
+            ta.dispatchEvent(new Event('input'));
+        }
+
+        // 10. Code Formatter / Tidy Indentation
+        function formatActiveCode() {
+            const ta = getActiveTextarea();
+            if (!ta) return;
+            const code = ta.value;
+
+            try {
+                if (currentTab === 'css') {
+                    // Simple CSS Formatter
+                    const formatted = code
+                        .replace(/\s*\{\s*/g, ' {\n  ')
+                        .replace(/\s*;\s*/g, ';\n  ')
+                        .replace(/\s*\}\s*/g, '\n}\n\n')
+                        .trim();
+                    ta.value = formatted;
+                } else if (currentTab === 'js') {
+                    // JS newline normalization
+                    const formatted = code
+                        .replace(/;\s*/g, ';\n')
+                        .replace(/\{\s*/g, ' {\n  ')
+                        .replace(/\}\s*/g, '\n}\n')
+                        .trim();
+                    ta.value = formatted;
+                } else {
+                    // HTML tag spacing
+                    const formatted = code
+                        .replace(/>\s*</g, '>\n<')
+                        .trim();
+                    ta.value = formatted;
+                }
+                ta.dispatchEvent(new Event('input'));
+                showToast('Code formatting applied!');
+            } catch(e) {
+                showToast('Could not format code.');
+            }
+        }
+
+        // 11. Copy All Working Standalone HTML
         function copyCombinedCode() {
             const code = currentTab === 'combined' ? document.getElementById('combinedInput').value : buildCombinedCode();
             if (!code.trim()) {
@@ -402,7 +637,7 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
             showToast('Copied standalone working HTML! Ready to paste anywhere.');
         }
 
-        // 8. Clear All Editors
+        // 12. Clear All Editors
         function clearAllCode() {
             if (confirm('Are you sure you want to clear all HTML, CSS, and JavaScript code in the editor?')) {
                 document.getElementById('htmlInput').value = '';
@@ -412,12 +647,14 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
                 document.getElementById('preview').srcdoc = '';
                 sessionStorage.removeItem('fiddle_draft');
                 combinedIsDirty = false;
+                updateLineNumbers();
                 checkSplitHelperVisibility();
+                clearConsoleLog();
                 showToast('All code cleared.');
             }
         }
 
-        // 9. Smart Split helper: extracts inline <style> and <script> from HTML tab
+        // 13. Smart Split helper: extracts inline <style> and <script> from HTML tab
         function checkSplitHelperVisibility() {
             const htmlVal = document.getElementById('htmlInput').value;
             const helperBtn = document.getElementById('splitHelperBtn');
@@ -456,12 +693,71 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
                 document.getElementById('jsInput').value = (currentJs ? currentJs.trim() + '\n\n' : '') + extractedJs.trim();
             }
 
+            updateLineNumbers();
             checkSplitHelperVisibility();
             runCode();
             showToast('Split inline <style> into CSS tab and <script> into JS tab!');
         }
 
-        // 10. Code Execution in Preview Iframe
+        // 14. Responsive Viewport Mode (Desktop / Tablet / Mobile)
+        function setPreviewViewport(width) {
+            const wrapper = document.getElementById('previewWrapper');
+            wrapper.style.maxWidth = width;
+
+            ['vp-desktop', 'vp-tablet', 'vp-mobile'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.className = 'btn btn-ghost btn-xs text-neutral-400 hover:text-white join-item px-2 py-0 h-6';
+            });
+
+            if (width === '100%') document.getElementById('vp-desktop').className = 'btn btn-ghost btn-xs text-primary join-item px-2 py-0 h-6';
+            else if (width === '768px') document.getElementById('vp-tablet').className = 'btn btn-ghost btn-xs text-primary join-item px-2 py-0 h-6';
+            else if (width === '375px') document.getElementById('vp-mobile').className = 'btn btn-ghost btn-xs text-primary join-item px-2 py-0 h-6';
+        }
+
+        // 15. Built-in Console Log Capture
+        function toggleConsoleDrawer() {
+            const drawer = document.getElementById('consoleDrawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function clearConsoleLog() {
+            document.getElementById('consoleLogs').innerHTML = '<div class="text-neutral-600 text-[11px] italic">Console cleared.</div>';
+            consoleCount = 0;
+            document.getElementById('consoleBadge').textContent = '0';
+        }
+
+        function appendConsoleLog(level, message, time) {
+            consoleCount++;
+            document.getElementById('consoleBadge').textContent = consoleCount;
+
+            const container = document.getElementById('consoleLogs');
+            const row = document.createElement('div');
+            row.className = 'flex items-start gap-2 py-0.5 border-b border-neutral-900 leading-snug';
+
+            let badgeClass = 'badge-neutral text-neutral-400';
+            if (level === 'warn') badgeClass = 'badge-warning text-yellow-900';
+            if (level === 'error') badgeClass = 'badge-error text-white';
+
+            row.innerHTML = `
+                <span class="text-[10px] text-neutral-600 shrink-0 font-mono">${time || ''}</span>
+                <span class="badge badge-xs ${badgeClass} font-mono uppercase text-[9px] shrink-0">${level}</span>
+                <span class="text-neutral-200 flex-1 break-words font-mono text-[11px]">${escapeHtml(message)}</span>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'FIDDLE_CONSOLE') {
+                appendConsoleLog(e.data.level, e.data.message, e.data.time);
+            }
+        });
+
+        // 16. Code Execution in Preview Iframe
         function runCode() {
             let source = '';
             if (currentTab === 'combined') {
@@ -469,10 +765,38 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
             } else {
                 source = buildCombinedCode();
             }
+
+            // Inject lightweight console capture hook into iframe
+            const consoleHook = `<script>
+(function() {
+  function _send(type, args) {
+    try {
+      var str = Array.prototype.map.call(args, function(item) {
+        if (typeof item === 'object') {
+          try { return JSON.stringify(item); } catch(e) { return String(item); }
+        }
+        return String(item);
+      }).join(' ');
+      window.parent.postMessage({ type: 'FIDDLE_CONSOLE', level: type, message: str, time: new Date().toLocaleTimeString() }, '*');
+    } catch(err) {}
+  }
+  var _log = console.log, _warn = console.warn, _err = console.error;
+  console.log = function() { _send('log', arguments); _log.apply(console, arguments); };
+  console.warn = function() { _send('warn', arguments); _warn.apply(console, arguments); };
+  console.error = function() { _send('error', arguments); _err.apply(console, arguments); };
+})();
+<\/script>`;
+
+            if (source.includes('<head>')) {
+                source = source.replace('<head>', '<head>' + consoleHook);
+            } else {
+                source = consoleHook + source;
+            }
+
             document.getElementById('preview').srcdoc = source;
         }
 
-        // Auto-save draft on user typing
+        // 17. Auto-save Draft
         function autoSaveDraft() {
             if (!currentSlug) {
                 const draft = {
@@ -484,19 +808,116 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
             }
         }
 
-        ['htmlInput', 'cssInput', 'jsInput'].forEach(id => {
+        // 18. Attach Input, Scroll, Cursor & Smart Bracket Listeners to Textareas
+        const bracketPairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' };
+
+        ['htmlInput', 'cssInput', 'jsInput', 'combinedInput'].forEach(id => {
             const el = document.getElementById(id);
+
+            // Sync scroll with line numbers
+            el.addEventListener('scroll', () => {
+                const gutter = document.getElementById('lineNumbers');
+                if (gutter) gutter.scrollTop = el.scrollTop;
+            });
+
+            // Sync input changes
             el.addEventListener('input', () => {
-                combinedIsDirty = false;
+                if (id === 'combinedInput') combinedIsDirty = true;
+                else combinedIsDirty = false;
+                updateLineNumbers();
                 checkSplitHelperVisibility();
                 autoSaveDraft();
             });
-        });
 
-        document.getElementById('combinedInput').addEventListener('input', () => {
-            combinedIsDirty = true;
-            runCode();
-            autoSaveDraft();
+            // Cursor movement updates
+            el.addEventListener('click', () => updateStatusInfo(el));
+            el.addEventListener('keyup', (e) => {
+                if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+                    updateStatusInfo(el);
+                }
+            });
+
+            // Keyboard Shortcuts: Tab indent, Auto-Brackets, Toggle Comment (Ctrl+/), Auto-Indent on Enter
+            el.addEventListener('keydown', function(e) {
+                // 1. Toggle Comment (Ctrl+/ or Cmd+/)
+                if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                    e.preventDefault();
+                    toggleComment();
+                    return;
+                }
+
+                // 2. Tab Key
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    this.setRangeText('  ', this.selectionStart, this.selectionStart, 'end');
+                    this.dispatchEvent(new Event('input'));
+                    return;
+                }
+
+                // 3. Auto-indent on Enter
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const val = this.value;
+                    const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+                    const currentLine = val.substring(lineStart, start);
+                    const indentMatch = currentLine.match(/^\s*/);
+                    let indent = indentMatch ? indentMatch[0] : '';
+
+                    const lastChar = currentLine.trim().slice(-1);
+                    if (['{', '(', '[', ':'].includes(lastChar)) {
+                        indent += '  ';
+                    }
+
+                    this.setRangeText('\n' + indent, start, start, 'end');
+                    this.dispatchEvent(new Event('input'));
+                    return;
+                }
+
+                // 4. Auto-Close Brackets & Quotes
+                if (bracketPairs[e.key]) {
+                    const closeChar = bracketPairs[e.key];
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+
+                    if (start !== end) {
+                        e.preventDefault();
+                        const selected = this.value.substring(start, end);
+                        this.setRangeText(e.key + selected + closeChar, start, end, 'select');
+                        this.dispatchEvent(new Event('input'));
+                        return;
+                    } else if (e.key === '"' || e.key === "'" || e.key === '`') {
+                        // Skip if already next to matching closing quote
+                        if (this.value.charAt(start) === e.key) {
+                            e.preventDefault();
+                            this.setSelectionRange(start + 1, start + 1);
+                            return;
+                        }
+                    }
+
+                    e.preventDefault();
+                    this.setRangeText(e.key + closeChar, start, start, 'end');
+                    this.setSelectionRange(start + 1, start + 1);
+                    this.dispatchEvent(new Event('input'));
+                    return;
+                }
+
+                // 5. Backspace between empty bracket pairs
+                if (e.key === 'Backspace') {
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    if (start === end && start > 0) {
+                        const prev = this.value.charAt(start - 1);
+                        const next = this.value.charAt(start);
+                        if (bracketPairs[prev] === next) {
+                            e.preventDefault();
+                            this.setRangeText('', start - 1, start + 1, 'end');
+                            this.dispatchEvent(new Event('input'));
+                            return;
+                        }
+                    }
+                }
+            });
         });
 
         // Split Panel Resizer
@@ -537,9 +958,8 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
             document.getElementById('save_modal').close();
         }
 
-        // 11. Save / Publish Application Without Reloading
+        // 19. Save / Publish Application Without Reloading
         async function submitSave() {
-            // If in combined tab and dirty, sync to tabs first
             if (currentTab === 'combined' && combinedIsDirty) {
                 syncCombinedToTabs();
             }
@@ -577,6 +997,13 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
                     // Update URL without any page reload
                     history.replaceState(null, '', '/fiddle/' + savedSlug);
 
+                    // Reveal Public Site Link in Top Bar
+                    const publicLink = document.getElementById('publicSiteLink');
+                    if (publicLink) {
+                        publicLink.href = '/sites/' + savedSlug + '/';
+                        publicLink.classList.remove('hidden');
+                    }
+
                     // Lock slug input for future saves
                     const slugInput = document.getElementById('saveSlug');
                     if (slugInput) {
@@ -602,7 +1029,7 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
                     runCode();
 
                     // Show success feedback
-                    showToast('Deployment updated! Changes saved to /sites/' + savedSlug + '/');
+                    showToast('Deployment updated! Live at /sites/' + savedSlug + '/');
                 } else {
                     alert('Error: ' + (result.error || 'Unknown error saving'));
                 }
@@ -614,16 +1041,6 @@ ${js ? indentCode(js, 4) : '    // JavaScript code'}
                 btn.disabled = false;
             }
         }
-
-        // Tab indentation inside textareas
-        document.querySelectorAll('textarea').forEach(el => {
-            el.addEventListener('keydown', function(e) {
-                if (e.key === 'Tab') {
-                    e.preventDefault();
-                    this.setRangeText('  ', this.selectionStart, this.selectionStart, 'end');
-                }
-            });
-        });
 
         window.onload = initEditors;
     </script>
